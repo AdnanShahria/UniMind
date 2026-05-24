@@ -25,7 +25,7 @@ export const HowItWorks = () => {
       
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-outfit mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold font-poppins mb-4">
             How It <span className="text-gradient">Works</span>
           </h2>
         </div>
@@ -50,7 +50,7 @@ export const HowItWorks = () => {
                 className="relative p-6 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col items-center text-center group hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300 shadow-md"
               >
                 {/* Number Indicator */}
-                <div className="absolute top-4 right-4 text-4xl font-bold text-white/[0.02] group-hover:text-primary/5 transition-colors font-outfit pointer-events-none z-0">
+                <div className="absolute top-4 right-4 text-4xl font-bold text-white/[0.02] group-hover:text-primary/5 transition-colors font-poppins pointer-events-none z-0">
                   0{index + 1}
                 </div>
                 
@@ -60,7 +60,7 @@ export const HowItWorks = () => {
                   <step.icon className="w-6 h-6 text-white group-hover:text-primary-glow transition-colors" />
                 </div>
                 
-                <h3 className="text-lg font-semibold text-white mb-2 font-outfit">{step.title}</h3>
+                <h3 className="text-lg font-semibold text-white mb-2 font-poppins">{step.title}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
@@ -78,7 +78,7 @@ export const HowItWorks = () => {
                   <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
                     <step.icon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-2 font-outfit">{step.title}</h3>
+                  <h3 className="text-base font-semibold text-white mb-2 font-poppins">{step.title}</h3>
                   <p className="text-[11px] text-slate-400 leading-relaxed">{step.desc}</p>
                 </div>
               ))}
@@ -91,7 +91,7 @@ export const HowItWorks = () => {
                   <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
                     <step.icon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-2 font-outfit">{step.title}</h3>
+                  <h3 className="text-base font-semibold text-white mb-2 font-poppins">{step.title}</h3>
                   <p className="text-[11px] text-slate-400 leading-relaxed">{step.desc}</p>
                 </div>
               ))}

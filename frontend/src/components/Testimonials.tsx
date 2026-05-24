@@ -1,10 +1,9 @@
 
-import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 
 const testimonials = [
   {
-    quote: "UNIMIND’s AI Tutor completely changed how I study for exams. It generates personalized flashcards and quizzes based on my actual lecture notes.",
+    quote: "UniMind’s AI Tutor completely changed how I study for exams. It generates personalized flashcards and quizzes based on my actual lecture notes.",
     author: "Sarah J.",
     role: "Computer Science Student",
     avatar: "bg-gradient-to-tr from-blue-500 to-cyan-400"
@@ -24,40 +23,60 @@ const testimonials = [
 ];
 
 export const Testimonials = () => {
-  return (
-    <section className="py-24 relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-outfit mb-4">
-            Trusted by the <span className="text-gradient">Academic World</span>
-          </h2>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            See how UNIMIND is revolutionizing the learning and research experience across the globe.
-          </p>
-        </div>
+  const duplicatedTestimonials = [...testimonials, ...testimonials, ...testimonials];
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((test, index) => (
-            <motion.div
+  return (
+    <section className="py-24 relative z-10 overflow-hidden">
+      <style>{`
+        @keyframes marquee-testimonials {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-33.3333%); }
+        }
+        .animate-marquee-testimonials {
+          display: flex;
+          width: max-content;
+          animation: marquee-testimonials 30s linear infinite;
+        }
+        .animate-marquee-testimonials:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+      
+      <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
+        <h2 className="text-4xl md:text-5xl font-bold font-poppins mb-4">
+          Trusted by the <span className="text-gradient">Academic World</span>
+        </h2>
+        <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto font-poppins font-light">
+          See how UniMind is revolutionizing the learning and research experience across the globe.
+        </p>
+      </div>
+
+      {/* Infinite Marquee Track */}
+      <div className="relative w-full overflow-hidden py-4 z-10">
+        {/* Left and Right Gradient Blurs for smooth premium masking */}
+        <div className="absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-background to-transparent z-20 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-background to-transparent z-20 pointer-events-none" />
+
+        <div className="animate-marquee-testimonials flex gap-6">
+          {duplicatedTestimonials.map((test, index) => (
+            <div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="glass-card p-8 rounded-3xl relative group"
+              className="glass-card w-[300px] sm:w-[360px] p-6 rounded-2xl relative group flex-shrink-0 flex flex-col justify-between hover:border-primary-glow/65 hover:bg-slate-900/60 transition-all duration-300 shadow-xl cursor-pointer"
             >
-              <Quote className="absolute top-6 right-6 w-8 h-8 text-white/5 group-hover:text-primary/20 transition-colors duration-500" />
-              <p className="text-slate-300 text-lg leading-relaxed mb-8 relative z-10">
+              <Quote className="absolute top-5 right-5 w-7 h-7 text-white/5 group-hover:text-primary/20 transition-colors duration-500 pointer-events-none" />
+              
+              <p className="text-slate-300 text-sm leading-relaxed mb-6 relative z-10 font-poppins font-light">
                 "{test.quote}"
               </p>
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full ${test.avatar} shadow-lg`} />
+              
+              <div className="flex items-center gap-3.5 border-t border-white/5 pt-4 mt-auto">
+                <div className={`w-10 h-10 rounded-full ${test.avatar} shadow-md flex-shrink-0`} />
                 <div>
-                  <h4 className="text-white font-semibold font-outfit">{test.author}</h4>
-                  <span className="text-sm text-slate-400">{test.role}</span>
+                  <h4 className="text-white font-semibold font-poppins text-sm">{test.author}</h4>
+                  <span className="text-xs text-slate-400">{test.role}</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

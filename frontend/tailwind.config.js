@@ -33,8 +33,13 @@ export default {
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.8s ease-out forwards',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'marquee': 'marquee 25s linear infinite',
       },
       keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
         blob: {
           '0%': { transform: 'translate(0px, 0px) scale(1)' },
           '33%': { transform: 'translate(30px, -50px) scale(1.1)' },

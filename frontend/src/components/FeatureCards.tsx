@@ -19,7 +19,7 @@ export const FeatureCards = () => {
     <section id="features" className="py-24 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-outfit mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold font-poppins mb-4">
             Everything You Need, <span className="text-gradient">Supercharged</span>
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
@@ -27,7 +27,7 @@ export const FeatureCards = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -36,17 +36,17 @@ export const FeatureCards = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
-              className="glass-card p-6 rounded-2xl group relative overflow-hidden"
+              className="glass-card p-4 sm:p-5 md:p-6 rounded-2xl group relative overflow-hidden"
             >
               {/* Hover gradient background effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
-                  <feature.icon className="w-6 h-6 text-primary-glow group-hover:animate-pulse" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-3 md:mb-4 group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
+                  <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary-glow group-hover:animate-pulse" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2 font-outfit group-hover:text-primary-glow transition-colors">{feature.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">{feature.desc}</p>
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-1.5 md:mb-2 font-poppins group-hover:text-primary-glow transition-colors">{feature.title}</h3>
+                <p className="text-[11px] sm:text-xs md:text-sm text-slate-400 leading-tight sm:leading-normal md:leading-relaxed group-hover:text-slate-300 transition-colors">{feature.desc}</p>
               </div>
             </motion.div>
           ))}

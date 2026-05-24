@@ -9,7 +9,7 @@ export const HeroSection = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   return (
-    <section className="relative min-h-screen flex flex-col items-center pt-32 pb-20 overflow-hidden bg-[#030712]">
+    <section className="relative min-h-screen flex flex-col items-center pt-16 pb-12 sm:pt-24 sm:pb-20 overflow-x-hidden overflow-y-visible bg-[#030712]">
       {/* Elegant Ambient Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-b from-primary/10 to-transparent blur-[120px]" />
@@ -17,29 +17,24 @@ export const HeroSection = () => {
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
       </div>
 
-      <div className="max-w-[90rem] mx-auto px-6 lg:px-12 xl:px-20 relative z-10 w-full grid lg:grid-cols-2 gap-16 items-center">
+      <div className="max-w-[90rem] mx-auto px-6 lg:px-12 xl:px-20 relative z-10 w-full grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         
         {/* Left Content */}
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="flex flex-col items-start"
         >
-          {/* Subtle elegant badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
-            <Sparkles className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-medium tracking-wide text-slate-300">Introducing UniMind 2.0</span>
-          </div>
-          
-          <h1 className="text-5xl lg:text-7xl font-medium font-garamond leading-[1.15] mb-6 text-white tracking-tight">
+
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-medium font-garamond leading-[1.15] mb-4 sm:mb-6 text-white tracking-tight">
             The Platform For <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400 italic font-semibold">
               DeepWork
             </span>
           </h1>
           
-          <p className="text-lg lg:text-xl text-slate-400 mb-10 max-w-xl leading-relaxed font-poppins font-light">
+          <p className="text-lg lg:text-xl text-slate-400 mb-6 sm:mb-10 max-w-xl leading-relaxed font-poppins font-light">
             A meticulously crafted environment where research, writing, and knowledge organization happen seamlessly. Designed for clarity, built for speed.
           </p>
           
@@ -57,11 +52,10 @@ export const HeroSection = () => {
 
         {/* Right Content - Stylish UI Mockup */}
         <motion.div
-          initial={{ opacity: 0, x: 40, y: 20 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-          className="relative lg:h-[650px] flex justify-center items-center w-full"
-          style={{ perspective: '1000px' }}
+          className="relative lg:h-[650px] flex justify-center items-center w-full overflow-hidden lg:overflow-visible lg:[perspective:1000px]"
         >
           <AnimatePresence mode="wait">
             {!isClosed ? (
@@ -71,10 +65,10 @@ export const HeroSection = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.4 }}
-                className={`w-full max-w-[600px] min-h-[520px] lg:h-[540px] rounded-2xl bg-[#0B0F19]/90 border transition-all duration-700 ease-out flex flex-col overflow-hidden backdrop-blur-2xl transform ${
+                className={`w-full min-h-[380px] sm:min-h-[460px] lg:h-[540px] lg:max-w-[600px] rounded-2xl bg-[#0B0F19]/90 border transition-all duration-700 ease-out flex flex-col overflow-hidden backdrop-blur-2xl transform ${
                   isMaximized 
-                    ? 'scale-105 rotate-y-0 rotate-x-0 border-purple-500/40 shadow-[0_0_50px_rgba(139,92,246,0.35)] z-30' 
-                    : 'rotate-y-[-5deg] rotate-x-[5deg] hover:rotate-y-0 hover:rotate-x-0 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]'
+                    ? 'scale-105 border-purple-500/40 shadow-[0_0_50px_rgba(139,92,246,0.35)] z-30' 
+                    : 'lg:rotate-y-[-5deg] lg:rotate-x-[5deg] hover:rotate-y-0 hover:rotate-x-0 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]'
                 }`}
               >
                 
@@ -153,7 +147,7 @@ export const HeroSection = () => {
                   </div>
                   
                   {/* Content Area */}
-                  <div className="flex-1 p-6 lg:p-8 flex flex-col gap-4 relative overflow-hidden">
+                  <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-4 relative overflow-hidden">
                     <AnimatePresence mode="wait">
                       {activeTab === 'files' ? (
                         <motion.div
@@ -447,7 +441,7 @@ export const HeroSection = () => {
                     </AnimatePresence>
 
                     {/* Elegant graph or visualization placeholder */}
-                    <div className="mt-auto h-24 rounded-xl border border-white/5 bg-gradient-to-b from-[#0F1423] to-transparent relative overflow-hidden transition-all duration-700">
+                    <div className="mt-auto h-16 sm:h-24 rounded-xl border border-white/5 bg-gradient-to-b from-[#0F1423] to-transparent relative overflow-hidden transition-all duration-700">
                        <div className={`absolute inset-0 bg-gradient-to-t transition-colors duration-700 ${isSynthesized ? (activeTab === 'database' ? 'from-cyan-500/15' : 'from-violet-500/15') : 'from-primary/10'} to-transparent`}></div>
                        <svg className={`absolute bottom-0 w-full h-full transition-colors duration-700 ${isSynthesized ? (activeTab === 'database' ? 'text-cyan-500/40' : 'text-violet-500/40') : 'text-primary/30'}`} preserveAspectRatio="none" viewBox="0 0 100 100">
                          {isSynthesized ? (
@@ -529,7 +523,7 @@ export const HeroSection = () => {
           </AnimatePresence>
           
           {/* Subtle backdrop elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-primary/5 via-transparent to-secondary/5 blur-3xl -z-10 rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] bg-gradient-to-tr from-primary/5 via-transparent to-secondary/5 blur-3xl -z-10 rounded-full" />
         </motion.div>
 
       </div>

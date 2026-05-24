@@ -33,14 +33,14 @@ export const Navbar = () => {
           : 'bg-slate-950/30 backdrop-blur-md border-white/5'
       )}
     >
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2 group cursor-pointer">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl border border-primary/30 group-hover:border-primary/50 transition-colors overflow-hidden">
+          <div className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-primary/30 group-hover:border-primary/50 transition-colors overflow-hidden">
             <img src="/logo.png" className="w-full h-full object-cover rounded-xl relative z-10" alt="UniMind Logo" />
             <div className="absolute inset-0 bg-primary-glow/20 blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          <span className="text-2xl font-bold font-outfit tracking-wider text-slate-100">
-            UNI<span className="text-gradient">MIND</span>
+          <span className="text-2xl font-bold font-poppins tracking-wider text-slate-100">
+            Uni<span className="text-gradient">Mind</span>
           </span>
         </div>
 

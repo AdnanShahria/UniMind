@@ -11,7 +11,7 @@ export const FutureVision = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-5xl md:text-7xl font-bold font-outfit mb-8"
+          className="text-5xl md:text-7xl font-bold font-poppins mb-8"
         >
           Building the <span className="text-gradient">Future of Education</span>
         </motion.h2>

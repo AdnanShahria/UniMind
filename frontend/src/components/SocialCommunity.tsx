@@ -31,7 +31,7 @@ export const SocialCommunity = () => {
             <span className="text-xs font-semibold uppercase tracking-wider text-secondary-glow">Social Ecosystem</span>
           </div>
           
-          <h2 className="text-4xl md:text-5xl font-bold font-outfit mb-6 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-bold font-poppins mb-6 leading-tight">
             Facebook for <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-secondary-glow to-primary-glow">Education + AI</span>
           </h2>
@@ -40,20 +40,31 @@ export const SocialCommunity = () => {
             Connect seamlessly with peers, join department groups, and form global research communities. Real-time messenger, study rooms, and a student feed tailored to your academic life.
           </p>
 
-          <ul className="space-y-4">
+          <div className="grid grid-cols-2 gap-3.5 sm:gap-4 mt-6">
             {[
-              { icon: Users2, text: 'Department & University Groups' },
-              { icon: MessageSquare, text: 'Real-time Study Rooms & Messenger' },
-              { icon: Shapes, text: 'Global Research Collaboration' }
+              { icon: Users2, title: 'Academic Groups', desc: 'Department & university networks.' },
+              { icon: MessageSquare, title: 'Study Rooms', desc: 'Real-time messenger & audio spaces.' },
+              { icon: Shapes, title: 'Global Collabs', desc: 'Cross-border research networks.' },
+              { icon: Sparkles, title: 'Smart Feed', desc: 'AI-recommended academic content & peers.' }
             ].map((item, i) => (
-              <li key={i} className="flex items-center gap-4 text-slate-300">
-                <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center border border-secondary/20">
-                  <item.icon className="w-4 h-4 text-secondary-glow" />
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="p-3 sm:p-4 rounded-xl glass-card flex flex-col gap-2.5 border-secondary/10 hover:border-secondary/30 transition-all duration-300 group cursor-pointer"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary/10 flex items-center justify-center border border-secondary/20 group-hover:border-secondary/50 group-hover:bg-secondary/20 transition-all">
+                  <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary-glow group-hover:animate-pulse" />
                 </div>
-                <span className="font-medium">{item.text}</span>
-              </li>
+                <div>
+                  <h4 className="font-semibold text-white font-poppins text-xs sm:text-sm group-hover:text-secondary-glow transition-colors">{item.title}</h4>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 leading-snug group-hover:text-slate-300 transition-colors mt-0.5">{item.desc}</p>
+                </div>
+              </motion.div>
             ))}
-          </ul>
+          </div>
         </motion.div>
 
         {/* Right: Mockups */}
@@ -62,10 +73,10 @@ export const SocialCommunity = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative h-[500px]"
+          className="flex flex-col sm:flex-row md:block gap-6 relative h-auto md:h-[500px] w-full max-w-[450px] md:max-w-none mx-auto md:scale-100 transition-all duration-300 items-center justify-center"
         >
           {/* Main Feed Mockup */}
-          <div className="absolute top-0 right-10 w-[320px] h-[425px] glass-card rounded-2xl p-4 shadow-2xl border-secondary/20 z-20 hover:scale-105 transition-all duration-300">
+          <div className="relative md:absolute md:top-0 md:right-10 w-full max-w-[320px] h-[425px] glass-card rounded-2xl p-4 shadow-2xl border-secondary/20 z-20 hover:scale-105 transition-all duration-300">
             {/* Post Header */}
             <div className="h-10 w-full flex items-center justify-between mb-3 border-b border-white/5 pb-3">
               <div className="flex items-center gap-2.5">
@@ -169,7 +180,7 @@ export const SocialCommunity = () => {
           </div>
 
           {/* Messenger Mockup */}
-          <div className="absolute bottom-0 left-0 w-[270px] h-[310px] bg-[#0b0f19]/95 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-primary/20 z-30 transform -rotate-3 hover:rotate-0 transition-all duration-500 hover:scale-105">
+          <div className="relative md:absolute md:bottom-0 md:left-4 w-full max-w-[270px] h-[310px] bg-[#0b0f19]/95 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-primary/20 z-30 md:transform md:-rotate-3 md:hover:rotate-0 transition-all duration-500 hover:scale-105 mt-4 md:mt-0">
              <div className="flex flex-col h-full">
                 {/* Chat Partner Header */}
                 <div className="flex items-center gap-2 border-b border-white/5 pb-2.5 mb-3">

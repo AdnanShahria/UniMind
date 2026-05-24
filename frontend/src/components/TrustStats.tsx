@@ -41,7 +41,7 @@ export const TrustStats = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col justify-center items-center text-center hover:bg-white/[0.06] hover:border-white/10 transition-all duration-300 group shadow-md"
               >
-                <div className="text-4xl lg:text-5xl font-bold font-outfit text-white mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
+                <div className="text-4xl lg:text-5xl font-bold font-poppins text-white mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
                   {stat.value}
                 </div>
                 <div className="text-[10px] lg:text-xs font-semibold text-slate-400 uppercase tracking-widest leading-relaxed">
@@ -60,7 +60,7 @@ export const TrustStats = () => {
                   key={`set1-${index}`}
                   className="w-[200px] flex-shrink-0 p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col justify-center items-center text-center"
                 >
-                  <div className="text-3xl font-bold font-outfit text-white mb-1.5 tracking-tight">
+                  <div className="text-3xl font-bold font-poppins text-white mb-1.5 tracking-tight">
                     {stat.value}
                   </div>
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -74,7 +74,7 @@ export const TrustStats = () => {
                   key={`set2-${index}`}
                   className="w-[200px] flex-shrink-0 p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col justify-center items-center text-center"
                 >
-                  <div className="text-3xl font-bold font-outfit text-white mb-1.5 tracking-tight">
+                  <div className="text-3xl font-bold font-poppins text-white mb-1.5 tracking-tight">
                     {stat.value}
                   </div>
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
