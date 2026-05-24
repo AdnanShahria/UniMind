@@ -99,7 +99,7 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + (index * 0.05), duration: 0.4 }}
-      className="rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.1] transition-all overflow-hidden"
+      className="glass-card rounded-2xl overflow-hidden"
     >
       <div className="p-5">
         {/* Post Header */}

@@ -33,7 +33,7 @@ export const SuggestedPrompts = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 + i * 0.1 }}
             onClick={() => handlePromptClick(item.prompt)}
-            className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-primary/20 hover:bg-white/[0.06] transition-all text-left group"
+            className="flex items-center gap-3 p-4 rounded-xl glass-card hover:border-primary/20 hover:bg-white/[0.06] transition-all text-left group"
           >
             <div className="w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
               <Icon className={`w-4.5 h-4.5 ${item.color}`} style={{ width: 18, height: 18 }} />

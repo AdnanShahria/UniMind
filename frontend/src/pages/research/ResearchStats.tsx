@@ -2,7 +2,7 @@ import { FileText, TrendingUp, Star } from 'lucide-react';
 
 export const ResearchStats = () => {
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5">
+    <div className="rounded-2xl glass-card p-5">
       <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] font-poppins mb-4">Your Impact</h3>
       <div className="space-y-4">
         {[

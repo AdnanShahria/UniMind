@@ -76,7 +76,7 @@ export const ProfilePage = () => {
       </button>
 
       {/* Profile Header */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 mb-8 relative overflow-hidden">
+      <div className="glass-card rounded-2xl p-8 mb-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-primary/20 to-purple-500/20 opacity-50"></div>
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mt-8">
           <div className="flex items-center gap-6">

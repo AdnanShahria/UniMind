@@ -104,7 +104,7 @@ export const EditProfileModal = ({ isOpen, onClose, currentUser, onProfileUpdate
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors"
+                className="w-full glass-card rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors"
               />
             </div>
 
@@ -114,7 +114,7 @@ export const EditProfileModal = ({ isOpen, onClose, currentUser, onProfileUpdate
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors min-h-[100px] resize-none"
+                className="w-full glass-card rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors min-h-[100px] resize-none"
                 placeholder="Tell us about your research..."
               />
             </div>
@@ -154,7 +154,7 @@ export const EditProfileModal = ({ isOpen, onClose, currentUser, onProfileUpdate
                     onChange={(e) => setGradInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddGraduation()}
                     placeholder="e.g. BSc Computer Science, MIT 2024"
-                    className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors"
+                    className="flex-1 glass-card rounded-xl px-4 py-2.5 text-sm text-white font-poppins focus:border-primary/50 outline-none transition-colors"
                   />
                   <button onClick={handleAddGraduation} className="p-2.5 bg-primary/10 hover:bg-primary/20 text-primary-glow rounded-xl transition-colors border border-primary/20">
                     <Plus className="w-5 h-5" />

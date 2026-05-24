@@ -46,7 +46,7 @@ export const TopBar = () => {
   };
 
   return (
-    <header className="h-16 border-b border-white/[0.06] bg-[#050810]/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-30 shrink-0">
+    <header className="h-16 border border-white/[0.08] bg-slate-900/60 backdrop-blur-xl flex items-center justify-between px-6 z-30 shrink-0 rounded-[2rem] shadow-xl">
       {/* Left: Search */}
       <div className="relative flex-1 max-w-xl">
         <div

@@ -7,24 +7,24 @@
     --bg-main: #f8fafc;
     --text-main: #0f172a;
     /* Invert colors for light mode so that white/opacity classes act like dark/opacity on a light background */
-    --color-white-rgb: 0, 0, 0;
-    --color-slate-900-rgb: 255, 255, 255;
-    --color-slate-800-rgb: 241, 245, 249;
-    --color-slate-200-rgb: 51, 65, 85;
-    --color-slate-400-rgb: 100, 116, 139;
-    --color-slate-500-rgb: 148, 163, 184;
+    --color-white-rgb: 0 0 0;
+    --color-slate-900-rgb: 255 255 255;
+    --color-slate-800-rgb: 241 245 249;
+    --color-slate-200-rgb: 51 65 85;
+    --color-slate-400-rgb: 100 116 139;
+    --color-slate-500-rgb: 148 163 184;
   }
 
   .dark {
-    --bg-main: #030712;
+    --bg-main: #0b1121;
     --text-main: #f8fafc;
     /* Keep original colors for dark mode */
-    --color-white-rgb: 255, 255, 255;
-    --color-slate-900-rgb: 15, 23, 42;
-    --color-slate-800-rgb: 30, 41, 59;
-    --color-slate-200-rgb: 226, 232, 240;
-    --color-slate-400-rgb: 148, 163, 184;
-    --color-slate-500-rgb: 100, 116, 139;
+    --color-white-rgb: 255 255 255;
+    --color-slate-900-rgb: 15 23 42;
+    --color-slate-800-rgb: 30 41 59;
+    --color-slate-200-rgb: 226 232 240;
+    --color-slate-400-rgb: 148 163 184;
+    --color-slate-500-rgb: 100 116 139;
   }
 
   body {
@@ -65,7 +65,7 @@
   }
   
   .glass-card {
-    @apply bg-slate-900/40 backdrop-blur-lg border border-white/10 hover:border-primary-glow/50 transition-all duration-300;
+    @apply bg-white/[0.05] backdrop-blur-lg border border-white/10 hover:border-primary-glow/50 transition-all duration-300;
   }
 
   .text-gradient {
@@ -108,4 +108,12 @@
 }
 .animate-spin-reverse {
   animation: spin-reverse 1.5s linear infinite;
+}
+
+/* Animation Delays */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
 }

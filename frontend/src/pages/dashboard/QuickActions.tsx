@@ -13,7 +13,7 @@ export const QuickActions = () => {
   return (
     <motion.div
       variants={fadeIn}
-      className="mt-8 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex flex-wrap items-center gap-3"
+      className="mt-8 p-4 rounded-2xl glass-card flex flex-wrap items-center gap-3"
     >
       <span className="text-[11px] text-slate-500 font-poppins font-semibold uppercase tracking-wider mr-2">Quick Actions</span>
       {[

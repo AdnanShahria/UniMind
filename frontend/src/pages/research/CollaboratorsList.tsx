@@ -2,7 +2,7 @@ import { Users } from 'lucide-react';
 
 export const CollaboratorsList = ({ collaborators }: { collaborators: any[] }) => {
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
+    <div className="rounded-2xl glass-card overflow-hidden">
       <div className="px-5 py-4 border-b border-white/[0.06]">
         <h3 className="text-sm font-semibold text-white font-poppins flex items-center gap-2">
           <Users className="w-4 h-4 text-cyan-400" />

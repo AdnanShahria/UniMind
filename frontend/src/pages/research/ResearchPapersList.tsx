@@ -3,7 +3,7 @@ import { FileText, TrendingUp, Bookmark, ExternalLink } from 'lucide-react';
 
 export const ResearchPapersList = ({ displayPapers }: { displayPapers: any[] }) => {
   return (
-    <div className="lg:col-span-2 rounded-2xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
+    <div className="lg:col-span-2 rounded-2xl glass-card overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
         <h3 className="text-sm font-semibold text-white font-poppins flex items-center gap-2">
           <FileText className="w-4 h-4 text-rose-400" />

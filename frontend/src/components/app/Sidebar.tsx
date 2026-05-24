@@ -50,12 +50,13 @@ export const Sidebar = () => {
   };
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: collapsed ? 72 : 260 }}
-      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-      className="h-screen sticky top-0 flex flex-col border-r border-white/[0.06] bg-[#050810]/95 backdrop-blur-xl z-40 select-none overflow-hidden"
-    >
+    <div className="relative h-[calc(100vh-2rem)] z-40 shrink-0">
+      <motion.aside
+        initial={false}
+        animate={{ width: collapsed ? 72 : 260 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        className="h-full flex flex-col border border-white/[0.08] bg-slate-900/60 backdrop-blur-xl select-none overflow-hidden rounded-[2rem] shadow-2xl"
+      >
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.06] shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -88,27 +89,44 @@ export const Sidebar = () => {
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden scrollbar-none">
         {/* AI Quick Action */}
         <div className="px-1 mb-3">
-          <NavLink to="/app/ai">
+          {collapsed ? (
             <motion.div
+              onClick={() => setCollapsed(false)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-primary/15 via-secondary/10 to-accent/10 border border-primary/20 hover:border-primary/40 transition-all cursor-pointer group ${collapsed ? 'justify-center' : ''}`}
+              className="flex items-center justify-center py-2.5 rounded-xl bg-slate-800/50 border border-white/10 hover:bg-slate-800 hover:border-primary/30 transition-all cursor-pointer group"
             >
-              <Sparkles className="w-4.5 h-4.5 text-primary-glow shrink-0 group-hover:animate-pulse" style={{ width: 18, height: 18 }} />
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-xs font-semibold text-slate-200 font-poppins whitespace-nowrap"
-                  >
-                    Ask AI Tutor
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-b from-slate-700 to-slate-900 border border-slate-600 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_4px_rgba(0,0,0,0.5)] flex items-center justify-center text-slate-400 group-hover:text-primary-glow group-hover:border-primary/50 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_10px_rgba(96,165,250,0.3)] transition-all">
+                <ChevronRight className="w-4 h-4 ml-0.5" />
+              </div>
             </motion.div>
-          </NavLink>
+          ) : (
+            <div className="grid grid-cols-10 gap-2">
+              <NavLink to="/app/ai" className="col-span-7 block">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-primary/15 via-secondary/10 to-accent/10 border border-primary/20 hover:border-primary/40 transition-all cursor-pointer group h-full"
+                >
+                  <Sparkles className="w-4.5 h-4.5 text-primary-glow shrink-0 group-hover:animate-pulse" style={{ width: 18, height: 18 }} />
+                  <span className="text-[11px] font-semibold text-slate-200 font-poppins whitespace-nowrap truncate">
+                    Ask AI Tutor
+                  </span>
+                </motion.div>
+              </NavLink>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setCollapsed(true)}
+                className="col-span-3 rounded-xl bg-slate-800/40 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:border-primary/30 transition-all h-full group"
+              >
+                <div className="w-7 h-7 rounded-full bg-gradient-to-b from-slate-700 to-slate-900 border border-slate-600 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_4px_rgba(0,0,0,0.5)] flex items-center justify-center text-slate-400 group-hover:text-primary-glow group-hover:border-primary/50 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_10px_rgba(96,165,250,0.3)] transition-all">
+                  <ChevronLeft className="w-4 h-4 mr-0.5" />
+                </div>
+              </motion.button>
+            </div>
+          )}
         </div>
 
         {/* Label */}
@@ -141,15 +159,17 @@ export const Sidebar = () => {
                 {active && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary-glow shadow-[0_0_8px_rgba(96,165,250,0.5)]"
+                    className="absolute left-0 top-0 bottom-0 my-auto w-[3px] h-5 rounded-r-full bg-primary-glow shadow-[0_0_8px_rgba(96,165,250,0.5)]"
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
 
-                <item.icon
-                  className={`shrink-0 transition-colors ${active ? item.color || 'text-primary-glow' : 'text-slate-500 group-hover:text-slate-300'}`}
-                  style={{ width: 19, height: 19 }}
-                />
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-b ${active ? 'from-slate-700 to-slate-800 border-primary/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_10px_rgba(96,165,250,0.2)]' : 'from-slate-800/20 to-slate-900/20 border-slate-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.2)]'} border flex items-center justify-center shrink-0 transition-all duration-300 group-hover:border-slate-500 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_8px_rgba(255,255,255,0.1)]`}>
+                  <item.icon
+                    className={`transition-colors ${active ? item.color || 'text-primary-glow' : 'text-slate-400 group-hover:text-slate-200'}`}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </div>
 
                 <AnimatePresence>
                   {!collapsed && (
@@ -202,7 +222,9 @@ export const Sidebar = () => {
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 }`}
               >
-                <item.icon className="shrink-0 text-slate-500 group-hover:text-slate-300" style={{ width: 19, height: 19 }} />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-b from-slate-800/20 to-slate-900/20 border border-slate-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.2)] flex items-center justify-center shrink-0 transition-all duration-300 group-hover:border-slate-500 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_8px_rgba(255,255,255,0.1)]">
+                  <item.icon className="text-slate-400 group-hover:text-slate-200 transition-colors" style={{ width: 16, height: 16 }} />
+                </div>
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.span
@@ -248,13 +270,8 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute top-[72px] -right-3 w-6 h-6 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 hover:border-primary/30 transition-all shadow-lg z-50"
-      >
-        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-      </button>
-    </motion.aside>
+      </motion.aside>
+
+    </div>
   );
 };

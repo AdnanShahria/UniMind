@@ -31,12 +31,23 @@ export const FeedPage = () => {
   }, []);
 
   const fetchPosts = async () => {
-    // In a real app we'd join with the public.users table to get author name and role.
-    // For now we'll just fetch the posts and mock the author if public.users is not synced yet.
-    const { data, error } = await supabase
+    // First try with users join
+    let { data, error } = await supabase
       .from('posts')
       .select('*, users(name, role)')
       .order('created_at', { ascending: false });
+
+    // Fallback if users relation fails (e.g. schema not fully applied)
+    if (error) {
+      console.warn("Could not fetch posts with users relation, trying without:", error);
+      const fallback = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (!error && data) {
       setPosts(data);

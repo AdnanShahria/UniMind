@@ -4,22 +4,23 @@ import { TopBar } from './TopBar';
 
 export const AppLayout = () => {
   return (
-    <div className="flex h-screen bg-background overflow-hidden font-poppins selection:bg-primary/30 selection:text-white">
-      {/* Background effects (subtle, won't compete with content) */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-15%] left-[-8%] w-[40%] h-[40%] rounded-full bg-primary/[0.04] blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] rounded-full bg-secondary/[0.04] blur-[120px]" />
-      </div>
+    <div className="flex h-screen bg-background overflow-hidden font-poppins selection:bg-primary/30 selection:text-white p-4 gap-4">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 bg-grid-pattern z-0 opacity-20 pointer-events-none" />
+      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[150px] mix-blend-screen pointer-events-none animate-blob" />
+      <div className="fixed top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/10 blur-[150px] mix-blend-screen pointer-events-none animate-blob animation-delay-2000" />
+      <div className="fixed bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-accent/10 blur-[150px] mix-blend-screen pointer-events-none animate-blob animation-delay-4000" />
+
 
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 gap-4">
         <TopBar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-900/40 backdrop-blur-md rounded-3xl border border-white/[0.05] shadow-2xl relative">
           <Outlet />
         </main>
       </div>

@@ -105,7 +105,7 @@ export const SettingsPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-6 mb-6 flex items-center gap-4"
+        className="rounded-2xl glass-card p-6 mb-6 flex items-center gap-4"
       >
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xl font-bold font-poppins shadow-lg">
           {userProfile?.initial || 'S'}
@@ -155,7 +155,7 @@ export const SettingsPage = () => {
           <TrendingUp className="w-4 h-4 text-emerald-400" /> Post Dashboard
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 flex flex-col items-center justify-center text-center">
+          <div className="rounded-2xl glass-card p-4 flex flex-col items-center justify-center text-center">
             <span className="text-2xl font-bold text-white font-outfit">{postStats.posts}</span>
             <span className="text-[11px] text-slate-500 font-poppins uppercase tracking-wider mt-1">Total Posts</span>
           </div>
@@ -187,7 +187,7 @@ export const SettingsPage = () => {
           className="mb-6"
         >
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] font-poppins mb-3 px-1">{section.title}</h3>
-          <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] overflow-hidden divide-y divide-white/[0.04]">
+          <div className="rounded-2xl glass-card overflow-hidden divide-y divide-white/[0.04]">
             {section.items.map((item, i) => (
               <button
                 key={i}

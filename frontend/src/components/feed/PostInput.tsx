@@ -20,7 +20,7 @@ export const PostInput = ({ currentUser, onPostCreated }: PostInputProps) => {
     <>
       <motion.div
         variants={fadeIn}
-        className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5 hover:border-white/[0.1] transition-all duration-300 shadow-sm cursor-text"
+        className="glass-card rounded-2xl p-5 shadow-sm cursor-text"
         onClick={() => setIsModalOpen(true)}
       >
         <div className="flex items-center gap-4">

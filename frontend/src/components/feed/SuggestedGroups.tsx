@@ -27,7 +27,7 @@ export const SuggestedGroups = () => {
   return (
     <motion.div
       variants={fadeIn}
-      className="rounded-2xl bg-white/[0.03] border border-white/[0.06] overflow-hidden"
+      className="glass-card rounded-2xl overflow-hidden"
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
         <h3 className="text-sm font-semibold text-white font-poppins flex items-center gap-2">
