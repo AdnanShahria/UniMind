@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Database, Download, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const DataManagementPage = () => {
@@ -29,7 +29,7 @@ export const DataManagementPage = () => {
     setIsResetting(true);
     setResetError('');
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) {
       setResetError('Could not identify user. Please refresh and try again.');
       setIsResetting(false);
@@ -38,9 +38,9 @@ export const DataManagementPage = () => {
 
     // Delete the user's content only — account stays intact
     const [postsRes, notesRes, commentsRes] = await Promise.all([
-      supabase.from('posts').delete().eq('author_id', user.id),
-      supabase.from('notes').delete().eq('user_id', user.id),
-      supabase.from('post_comments').delete().eq('user_id', user.id),
+      turso.from('posts').delete().eq('author_id', user.id),
+      turso.from('notes').delete().eq('user_id', user.id),
+      turso.from('post_comments').delete().eq('user_id', user.id),
     ]);
 
     const err = postsRes.error || notesRes.error || commentsRes.error;

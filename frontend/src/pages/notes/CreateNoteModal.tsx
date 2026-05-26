@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, FolderOpen, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { toast } from 'react-hot-toast';
 
 const NOTE_COLORS = [
@@ -45,9 +45,9 @@ export const CreateNoteModal = ({
   }, [isOpen, initialTitle, initialContent]);
 
   const fetchFolders = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) return;
-    const { data } = await supabase.from('folders').select('id, name').eq('user_id', user.id);
+    const { data } = await turso.from('folders').select('id, name').eq('user_id', user.id);
     if (data) setFolders(data);
   };
 
@@ -59,14 +59,14 @@ export const CreateNoteModal = ({
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (!user) { toast.error('Please sign in first'); return; }
 
       let folderId: string | null = null;
 
       // Create new folder if typed
       if (newFolder.trim()) {
-        const { data: createdFolder } = await supabase
+        const { data: createdFolder } = await turso
           .from('folders')
           .insert([{ user_id: user.id, name: newFolder.trim() }])
           .select()
@@ -76,7 +76,7 @@ export const CreateNoteModal = ({
         folderId = selectedFolder;
       }
 
-      const { error } = await supabase.from('notes').insert([{
+      const { error } = await turso.from('notes').insert([{
         author_id: user.id,
         title: title.trim(),
         content: content.trim(),

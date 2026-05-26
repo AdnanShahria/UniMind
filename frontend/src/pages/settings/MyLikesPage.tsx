@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { Heart, Search, User, Calendar, HeartOff } from 'lucide-react';
 
@@ -29,10 +29,10 @@ export const MyLikesPage = () => {
 
   const fetchLikes = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data } = await supabase
+    const { data } = await turso
       .from('post_likes')
       .select(`
         post_id,
@@ -53,9 +53,9 @@ export const MyLikesPage = () => {
 
   const handleUnlike = async (postId: string) => {
     setUnlikingId(postId);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (user) {
-      await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id);
+      await turso.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id);
       setLikes(prev => prev.filter(l => l.post_id !== postId));
     }
     setUnlikingId(null);

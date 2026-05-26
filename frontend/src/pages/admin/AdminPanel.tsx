@@ -1,15 +1,24 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { 
   ShieldAlert, CheckCircle2, XCircle, Clock, 
   Mail, Calendar, ArrowRight, Check, X,
-  Filter, Search, Award
+  Filter, Search, Award, School
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const stagger = {
   animate: { transition: { staggerChildren: 0.05 } },
+};
+
+const parseValue = (val: string | null | undefined) => {
+  if (!val) return { value: '', university: null };
+  if (val.includes(' | University: ')) {
+    const [value, uni] = val.split(' | University: ');
+    return { value, university: uni };
+  }
+  return { value: val, university: null };
 };
 
 export const AdminPanel = () => {
@@ -23,14 +32,14 @@ export const AdminPanel = () => {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await turso.auth.getUser();
         if (!user) {
           setIsAdmin(false);
           setIsLoading(false);
           return;
         }
 
-        const { data: profile } = await supabase
+        const { data: profile } = await turso
           .from('users')
           .select('role')
           .eq('id', user.id)
@@ -59,7 +68,7 @@ export const AdminPanel = () => {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await turso
         .from('metadata_requests')
         .select('*')
         .order('created_at', { ascending: false });
@@ -80,7 +89,7 @@ export const AdminPanel = () => {
     setRequests(prev => prev.map(req => req.id === id ? { ...req, status: action } : req));
     
     try {
-      const { error } = await supabase
+      const { error } = await turso
         .from('metadata_requests')
         .update({ status: action })
         .eq('id', id);
@@ -264,9 +273,10 @@ export const AdminPanel = () => {
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border font-mono uppercase ${
                       req.request_type === 'institution' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
                       req.request_type === 'major' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
-                      'text-purple-400 bg-purple-500/10 border-purple-500/20'
+                      req.request_type === 'session' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
+                      'text-pink-400 bg-pink-500/10 border-pink-500/20'
                     }`}>
-                      {req.request_type}
+                      {req.request_type === 'role' ? 'academic role' : req.request_type}
                     </span>
 
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg font-mono uppercase ${
@@ -279,24 +289,49 @@ export const AdminPanel = () => {
 
                   {/* Card Main: Content Values */}
                   <div className="space-y-2.5">
-                    {req.action_type === 'rename' ? (
-                      <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3">
-                        <div className="min-w-0">
-                          <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Current listed name</span>
-                          <span className="text-xs text-red-400/80 font-medium line-through truncate block mt-0.5">{req.old_value}</span>
+                    {(() => {
+                      const parsedNew = parseValue(req.new_value);
+                      const parsedOld = req.old_value ? parseValue(req.old_value) : null;
+                      
+                      return req.action_type === 'rename' ? (
+                        <div className="flex flex-col gap-2.5 bg-white/5 border border-white/5 rounded-xl p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Current listed name</span>
+                              <span className="text-xs text-red-400/80 font-medium line-through truncate block mt-0.5">{parsedOld?.value || req.old_value}</span>
+                            </div>
+                            <ArrowRight className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Proposed Correction</span>
+                              <span className="text-xs text-emerald-400 font-semibold truncate block mt-0.5">{parsedNew.value}</span>
+                            </div>
+                          </div>
+                          {parsedNew.university && (
+                            <div className="pt-2 border-t border-white/5 flex items-center gap-1.5">
+                              <School className="w-3.5 h-3.5 text-primary-glow" />
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                Associated with: <span className="text-primary-glow font-semibold">{parsedNew.university}</span>
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <ArrowRight className="w-4.5 h-4.5 text-slate-500 shrink-0" />
-                        <div className="min-w-0">
-                          <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Proposed Correction</span>
-                          <span className="text-xs text-emerald-400 font-semibold truncate block mt-0.5">{req.new_value}</span>
+                      ) : (
+                        <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2.5">
+                          <div>
+                            <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Proposed Entry to add</span>
+                            <span className="text-xs text-slate-200 font-semibold block mt-0.5">{parsedNew.value}</span>
+                          </div>
+                          {parsedNew.university && (
+                            <div className="pt-2 border-t border-white/5 flex items-center gap-1.5">
+                              <School className="w-3.5 h-3.5 text-primary-glow" />
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                Associated with: <span className="text-primary-glow font-semibold">{parsedNew.university}</span>
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="bg-white/5 border border-white/5 rounded-xl p-3">
-                        <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wide">Proposed Entry to add</span>
-                        <span className="text-xs text-slate-200 font-semibold block mt-0.5">{req.new_value}</span>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
 
                   {/* Requester Info & Date */}

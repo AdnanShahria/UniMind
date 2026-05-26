@@ -7,7 +7,8 @@ import {
   Activity, ArrowRight, Check, X, AlertCircle, 
   HelpCircle, PlusCircle
 } from 'lucide-react';
-import { supabase } from '../utils/supabaseClient';
+import { turso } from '../utils/tursoClient';
+import toast from 'react-hot-toast';
 
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
@@ -33,8 +34,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     country: '',
     isUnlistedInstitution: false,
     major: '',
+    isCustomMajor: false,
     session: '',
+    isCustomSession: false,
     role: 'Undergraduate',
+    isCustomRole: false,
     password: '',
     agree: false
   });
@@ -50,10 +54,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [loadingStep, setLoadingStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Dynamic Custom State Lists
+  const [customUniversities, setCustomUniversities] = useState<string[]>([]);
+  const [customMajors, setCustomMajors] = useState<string[]>([]);
+  const [customSessions, setCustomSessions] = useState<string[]>([]);
+  const [customRoles, setCustomRoles] = useState<string[]>([]);
+
+  // Saving animation states
+  const [isSavingUni, setIsSavingUni] = useState(false);
+  const [isSavingMajor, setIsSavingMajor] = useState(false);
+  const [isSavingSession, setIsSavingSession] = useState(false);
+  const [isSavingRole, setIsSavingRole] = useState(false);
+
   // Metadata Request Form State
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestEmail, setRequestEmail] = useState('');
-  const [requestType, setRequestType] = useState<'institution' | 'major' | 'session'>('institution');
+  const [requestType, setRequestType] = useState<'institution' | 'major' | 'session' | 'role'>('institution');
+  const [associatedUni, setAssociatedUni] = useState('');
   const [actionType, setActionType] = useState<'add' | 'rename'>('add');
   const [oldValue, setOldValue] = useState('');
   const [newValue, setNewValue] = useState('');
@@ -102,6 +119,36 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       return;
     }
 
+    if (name === "majorSelect") {
+      if (value === "unlisted") {
+        setRegForm(prev => ({ ...prev, isCustomMajor: true, major: '' }));
+      } else {
+        setRegForm(prev => ({ ...prev, isCustomMajor: false, major: value }));
+      }
+      if (errors.major) setErrors(prev => { const copy = { ...prev }; delete copy.major; return copy; });
+      return;
+    }
+
+    if (name === "sessionSelect") {
+      if (value === "unlisted") {
+        setRegForm(prev => ({ ...prev, isCustomSession: true, session: '' }));
+      } else {
+        setRegForm(prev => ({ ...prev, isCustomSession: false, session: value }));
+      }
+      if (errors.session) setErrors(prev => { const copy = { ...prev }; delete copy.session; return copy; });
+      return;
+    }
+
+    if (name === "roleSelect") {
+      if (value === "unlisted") {
+        setRegForm(prev => ({ ...prev, isCustomRole: true, role: '' }));
+      } else {
+        setRegForm(prev => ({ ...prev, isCustomRole: false, role: value }));
+      }
+      if (errors.role) setErrors(prev => { const copy = { ...prev }; delete copy.role; return copy; });
+      return;
+    }
+
     setRegForm(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => {
@@ -120,6 +167,195 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         delete copy.agree;
         return copy;
       });
+    }
+  };
+
+  const saveCustomInstitution = async () => {
+    const uni = regForm.institution.trim();
+    if (!uni) {
+      setErrors(prev => ({ ...prev, institution: 'Institution name cannot be empty' }));
+      return;
+    }
+    if (regForm.isUnlistedInstitution && (!regForm.district.trim() || !regForm.country.trim())) {
+      setErrors(prev => ({ ...prev, institution: 'District and Country are required' }));
+      return;
+    }
+
+    setIsSavingUni(true);
+    try {
+      const requesterEmail = regForm.email.trim() || 'beta-registration@unimind.edu';
+      const { error } = await turso.from('metadata_requests').insert([
+        {
+          requester_email: requesterEmail,
+          request_type: 'institution',
+          action_type: 'add',
+          old_value: null,
+          new_value: uni,
+          status: 'pending'
+        }
+      ]);
+
+      if (error) {
+        setErrors(prev => ({ ...prev, institution: error.message || 'Failed to save institution' }));
+        return;
+      }
+
+      setCustomUniversities(prev => [...prev, uni]);
+      setRegForm(prev => ({
+        ...prev,
+        isUnlistedInstitution: false,
+        institution: uni
+      }));
+      
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.institution;
+        return copy;
+      });
+
+      toast.success(`University "${uni}" saved under registry!`);
+    } catch (e: any) {
+      setErrors(prev => ({ ...prev, institution: e.message || 'An error occurred' }));
+    } finally {
+      setIsSavingUni(false);
+    }
+  };
+
+  const saveCustomMajor = async () => {
+    const major = regForm.major.trim();
+    if (!major) {
+      setErrors(prev => ({ ...prev, major: 'Major name cannot be empty' }));
+      return;
+    }
+
+    const activeUni = regForm.institution.trim();
+    const requesterEmail = regForm.email.trim() || 'beta-registration@unimind.edu';
+    const finalVal = activeUni ? `${major} | University: ${activeUni}` : major;
+
+    setIsSavingMajor(true);
+    try {
+      const { error } = await turso.from('metadata_requests').insert([
+        {
+          requester_email: requesterEmail,
+          request_type: 'major',
+          action_type: 'add',
+          old_value: null,
+          new_value: finalVal,
+          status: 'pending'
+        }
+      ]);
+
+      if (error) {
+        setErrors(prev => ({ ...prev, major: error.message || 'Failed to save Major' }));
+        return;
+      }
+
+      setCustomMajors(prev => [...prev, major]);
+      setRegForm(prev => ({
+        ...prev,
+        isCustomMajor: false,
+        major: major
+      }));
+
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.major;
+        return copy;
+      });
+
+      toast.success(`Major "${major}" saved under ${activeUni || 'Registry'}!`);
+    } catch (e: any) {
+      setErrors(prev => ({ ...prev, major: e.message || 'An error occurred' }));
+    } finally {
+      setIsSavingMajor(false);
+    }
+  };
+
+  const saveCustomSession = async () => {
+    const session = regForm.session.trim();
+    if (!session) {
+      toast.error('Session cannot be empty');
+      return;
+    }
+
+    const activeUni = regForm.institution.trim();
+    const requesterEmail = regForm.email.trim() || 'beta-registration@unimind.edu';
+    const finalVal = activeUni ? `${session} | University: ${activeUni}` : session;
+
+    setIsSavingSession(true);
+    try {
+      const { error } = await turso.from('metadata_requests').insert([
+        {
+          requester_email: requesterEmail,
+          request_type: 'session',
+          action_type: 'add',
+          old_value: null,
+          new_value: finalVal,
+          status: 'pending'
+        }
+      ]);
+
+      if (error) {
+        toast.error(error.message || 'Failed to save Session');
+        return;
+      }
+
+      setCustomSessions(prev => [...prev, session]);
+      setRegForm(prev => ({
+        ...prev,
+        isCustomSession: false,
+        session: session
+      }));
+
+      toast.success(`Session "${session}" saved under ${activeUni || 'Registry'}!`);
+    } catch (e: any) {
+      toast.error(e.message || 'An error occurred');
+    } finally {
+      setIsSavingSession(false);
+    }
+  };
+
+  const saveCustomRole = async () => {
+    const role = regForm.role.trim();
+    if (!role) {
+      toast.error('Academic Role cannot be empty');
+      return;
+    }
+
+    const activeUni = regForm.institution.trim();
+    const requesterEmail = regForm.email.trim() || 'beta-registration@unimind.edu';
+    const finalVal = activeUni ? `${role} | University: ${activeUni}` : role;
+
+    setIsSavingRole(true);
+    try {
+      const { error } = await turso.from('metadata_requests').insert([
+        {
+          requester_email: requesterEmail,
+          request_type: 'role',
+          action_type: 'add',
+          old_value: null,
+          new_value: finalVal,
+          status: 'pending'
+        }
+      ]);
+
+      if (error) {
+        toast.error(error.message || 'Failed to save Role');
+        return;
+      }
+
+      setCustomRoles(prev => [...prev, role]);
+      setRegForm(prev => ({
+        ...prev,
+        isCustomRole: false,
+        role: role
+      }));
+
+      toast.success(`Academic Role "${role}" saved under ${activeUni || 'Registry'}!`);
+    } catch (e: any) {
+      toast.error(e.message || 'An error occurred');
+    } finally {
+      setIsSavingRole(false);
     }
   };
 
@@ -177,7 +413,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setErrors({});
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await turso.auth.signUp({
         email: regForm.email,
         password: regForm.password,
         options: {
@@ -209,7 +445,81 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           major: data.user.user_metadata?.major || regForm.major,
           role: data.user.user_metadata?.role || regForm.role,
         });
-        // We let the useEffect loading animation finish, which then sets status='success'
+
+        // Submit custom metadata suggestions in the background associated under the university
+        const activeUni = regForm.institution.trim();
+        const requesterEmail = regForm.email.trim();
+
+        if (regForm.isUnlistedInstitution && activeUni) {
+          try {
+            await turso.from('metadata_requests').insert([
+              {
+                requester_email: requesterEmail,
+                request_type: 'institution',
+                action_type: 'add',
+                old_value: null,
+                new_value: activeUni,
+                status: 'pending'
+              }
+            ]);
+          } catch (e) {
+            console.error("Auto university suggest failed:", e);
+          }
+        }
+
+        if (regForm.isCustomMajor && regForm.major.trim()) {
+          try {
+            const finalVal = activeUni ? `${regForm.major.trim()} | University: ${activeUni}` : regForm.major.trim();
+            await turso.from('metadata_requests').insert([
+              {
+                requester_email: requesterEmail,
+                request_type: 'major',
+                action_type: 'add',
+                old_value: null,
+                new_value: finalVal,
+                status: 'pending'
+              }
+            ]);
+          } catch (e) {
+            console.error("Auto major suggest failed:", e);
+          }
+        }
+
+        if (regForm.isCustomSession && regForm.session.trim()) {
+          try {
+            const finalVal = activeUni ? `${regForm.session.trim()} | University: ${activeUni}` : regForm.session.trim();
+            await turso.from('metadata_requests').insert([
+              {
+                requester_email: requesterEmail,
+                request_type: 'session',
+                action_type: 'add',
+                old_value: null,
+                new_value: finalVal,
+                status: 'pending'
+              }
+            ]);
+          } catch (e) {
+            console.error("Auto session suggest failed:", e);
+          }
+        }
+
+        if (regForm.isCustomRole && regForm.role.trim()) {
+          try {
+            const finalVal = activeUni ? `${regForm.role.trim()} | University: ${activeUni}` : regForm.role.trim();
+            await turso.from('metadata_requests').insert([
+              {
+                requester_email: requesterEmail,
+                request_type: 'role',
+                action_type: 'add',
+                old_value: null,
+                new_value: finalVal,
+                status: 'pending'
+              }
+            ]);
+          } catch (e) {
+            console.error("Auto role suggest failed:", e);
+          }
+        }
       }
     } catch (err: any) {
       console.warn("Auth error:", err.message || err);
@@ -237,13 +547,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setRequestError('');
 
     try {
-      const { error } = await supabase.from('metadata_requests').insert([
+      const finalNewValue = requestType !== 'institution' && associatedUni.trim()
+        ? `${newValue} | University: ${associatedUni.trim()}`
+        : newValue;
+
+      const { error } = await turso.from('metadata_requests').insert([
         {
           requester_email: requestEmail,
           request_type: requestType,
           action_type: actionType,
           old_value: actionType === 'rename' ? oldValue : null,
-          new_value: newValue,
+          new_value: finalNewValue,
           status: 'pending'
         }
       ]);
@@ -271,7 +585,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setErrors({});
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await turso.auth.signInWithPassword({
         email: loginForm.email,
         password: loginForm.password,
       });
@@ -337,7 +651,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </button>
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl rounded-[32px] overflow-hidden glass-panel border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] grid grid-cols-1 lg:grid-cols-12 bg-slate-950/40 backdrop-blur-xl">
+      <motion.div 
+        layout 
+        transition={{ type: "spring", stiffness: 180, damping: 25 }}
+        className="relative z-10 w-full max-w-6xl rounded-[32px] overflow-hidden glass-panel border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] grid grid-cols-1 lg:grid-cols-12 bg-slate-950/40 backdrop-blur-xl"
+      >
         
         {/* LEFT PANEL: BRANDING & BENEFITS SHOWCASE */}
         <div className="lg:col-span-5 relative p-8 sm:p-10 md:p-12 bg-gradient-to-br from-slate-950 via-[#0a0f1d] to-[#040813] border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-between overflow-hidden">
@@ -353,7 +671,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <span className="text-2xl font-bold font-poppins tracking-wider text-slate-100">
                 Uni<span className="text-gradient">Mind</span>
               </span>
-              <p className="text-[9px] text-primary-glow font-semibold uppercase tracking-widest font-poppins leading-none mt-0.5">Academic OS</p>
             </div>
           </div>
 
@@ -405,7 +722,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </div>
 
         {/* RIGHT PANEL: INTERACTIVE LOGIN/REGISTER FORMS OR LOADING/SUCCESS */}
-        <div className="lg:col-span-7 p-6 sm:p-10 md:p-12 flex flex-col justify-center min-h-[550px] relative">
+        <div className="lg:col-span-7 p-6 sm:p-10 md:p-12 flex flex-col justify-center min-h-[550px] relative overflow-hidden">
+          {/* Subtle Right Panel Ambient Glows */}
+          <div className="absolute top-[20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-primary/5 to-secondary/5 blur-[120px] pointer-events-none z-0" />
+          
           <AnimatePresence mode="wait">
             
             {/* IDLE FORM VIEW */}
@@ -416,26 +736,34 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-full"
+                className="w-full relative z-10"
               >
                 {/* Form Tabs */}
-                <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 max-w-sm mb-8 relative z-10">
+                <div className="flex p-1 bg-slate-950/60 backdrop-blur-md rounded-xl border border-white/5 max-w-sm mb-8 relative z-10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
+                  {/* Single background sliding indicator */}
+                  <motion.div
+                    className="absolute top-1 bottom-1 bg-gradient-to-r from-[#2563eb]/90 to-[#8b5cf6]/90 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.45)]"
+                    animate={{
+                      left: activeTab === 'register' ? '4px' : '50%',
+                      right: activeTab === 'register' ? '50%' : '4px',
+                    }}
+                    transition={{ type: "spring", stiffness: 220, damping: 24 }}
+                  />
+
                   <button
+                    type="button"
                     onClick={() => { setActiveTab('register'); setErrors({}); }}
-                    className={`flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 ${
-                      activeTab === 'register' 
-                        ? 'bg-primary text-white shadow-lg' 
-                        : 'text-slate-400 hover:text-white'
+                    className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 relative z-10 ${
+                      activeTab === 'register' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     Join Beta
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setActiveTab('login'); setErrors({}); }}
-                    className={`flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 ${
-                      activeTab === 'login' 
-                        ? 'bg-primary text-white shadow-lg' 
-                        : 'text-slate-400 hover:text-white'
+                    className={`flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 relative z-10 ${
+                      activeTab === 'login' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     Login
@@ -469,219 +797,398 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <form onSubmit={handleRegSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Name */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Full Name</label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <div className="group flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Full Name</label>
+                        <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                           <input
                             type="text"
                             name="name"
                             value={regForm.name}
                             onChange={handleRegChange}
                             placeholder="Adnan Shahria"
-                            className={`w-full h-11 bg-white/5 border ${errors.name ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                            className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
                           />
                         </div>
-                        {errors.name && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.name}</p>}
+                        {errors.name && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.name}</p>}
                       </div>
 
                       {/* Academic Email */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Academic Email</label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <div className="group flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Academic Email</label>
+                        <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                           <input
                             type="email"
                             name="email"
                             value={regForm.email}
                             onChange={handleRegChange}
                             placeholder="adnan@university.edu"
-                            className={`w-full h-11 bg-white/5 border ${errors.email ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                            className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
                           />
                         </div>
-                        {errors.email && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.email}</p>}
+                        {errors.email && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.email}</p>}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Institution */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">University / Institution</label>
+                      <div className="group flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">University / Institution</label>
                         {!regForm.isUnlistedInstitution ? (
-                          <div className="relative">
+                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
                             <select
                               name="institutionSelect"
                               onChange={handleRegChange}
                               value={regForm.institution || ""}
-                              className={`w-full h-11 bg-[#090d16] border ${errors.institution ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none cursor-pointer appearance-none transition-all`}
+                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
                             >
-                              <option value="" disabled>Select Institution</option>
-                              <option value="Bangladesh University of Engineering and Technology">Bangladesh University of Engineering and Technology</option>
-                              <option value="University of Dhaka">University of Dhaka</option>
-                              <option value="Shahjalal University of Science & Technology">Shahjalal University of Science & Technology</option>
-                              <option value="Stanford University">Stanford University</option>
-                              <option value="unlisted" className="text-primary-glow font-bold">Can't find your institution? Add new</option>
+                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Institution</option>
+                              {customUniversities.map((uni, idx) => (
+                                <option key={`custom-uni-${idx}`} value={uni} className="bg-[#0b1121] text-emerald-400 font-medium">{uni} (Custom)</option>
+                              ))}
+                              <option value="Bangladesh University of Engineering and Technology" className="bg-[#0b1121] text-slate-200">Bangladesh University of Engineering and Technology</option>
+                              <option value="University of Dhaka" className="bg-[#0b1121] text-slate-200">University of Dhaka</option>
+                              <option value="Shahjalal University of Science & Technology" className="bg-[#0b1121] text-slate-200">Shahjalal University of Science & Technology</option>
+                              <option value="Stanford University" className="bg-[#0b1121] text-slate-200">Stanford University</option>
+                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your institution? Add new</option>
                             </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs font-bold font-poppins">▼</div>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
                           </div>
                         ) : (
-                          <div className="relative flex flex-col gap-3">
-                            <div className="relative">
-                              <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="relative flex flex-col gap-3"
+                          >
+                            <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6]" />
+                              <School className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-glow" />
                               <input
                                 type="text"
                                 name="institution"
                                 value={regForm.institution}
                                 onChange={handleRegChange}
                                 placeholder="Enter Custom Institution Name"
-                                className={`w-full h-11 bg-white/5 border ${errors.institution ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                                className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
                               />
                             </div>
                             <div className="flex gap-2">
-                              <input type="text" name="district" value={regForm.district} onChange={handleRegChange} placeholder="District" className="w-1/2 h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none focus:border-primary-glow/50" />
-                              <input type="text" name="country" value={regForm.country} onChange={handleRegChange} placeholder="Country" className="w-1/2 h-11 bg-white/5 border border-white/10 rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none focus:border-primary-glow/50" />
+                              <div className="w-1/2 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
+                                <input 
+                                  type="text" 
+                                  name="district" 
+                                  value={regForm.district} 
+                                  onChange={handleRegChange} 
+                                  placeholder="District" 
+                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins" 
+                                />
+                              </div>
+                              <div className="w-1/2 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
+                                <input 
+                                  type="text" 
+                                  name="country" 
+                                  value={regForm.country} 
+                                  onChange={handleRegChange} 
+                                  placeholder="Country" 
+                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins" 
+                                />
+                              </div>
                             </div>
-                            <button type="button" onClick={() => setRegForm(prev => ({...prev, isUnlistedInstitution: false, institution: ''}))} className="text-[10px] text-primary-glow text-left hover:underline">← Back to list</button>
-                          </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <button 
+                                type="button" 
+                                onClick={() => setRegForm(prev => ({...prev, isUnlistedInstitution: false, institution: ''}))} 
+                                className="text-[10px] text-primary-glow hover:underline font-poppins font-medium"
+                              >
+                                ← Back to list
+                              </button>
+                              <button
+                                type="button"
+                                onClick={saveCustomInstitution}
+                                disabled={isSavingUni}
+                                className={`relative px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[10px] transition-all cursor-pointer overflow-hidden ${
+                                  isSavingUni ? 'opacity-80 pointer-events-none' : 'animate-glow-pulse'
+                                }`}
+                              >
+                                {isSavingUni && <span className="absolute inset-0 animate-shimmer rounded-xl" />}
+                                {isSavingUni ? 'Saving…' : 'Save University'}
+                              </button>
+                            </div>
+                          </motion.div>
                         )}
-                        {errors.institution && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.institution}</p>}
+                        {errors.institution && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.institution}</p>}
                       </div>
 
                       {/* Major */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Field of Study / Major</label>
-                        <div className="relative">
-                          <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                          <input
-                            type="text"
-                            name="major"
-                            list="majors"
-                            value={regForm.major}
-                            onChange={handleRegChange}
-                            placeholder="e.g. Computer Science"
-                            className={`w-full h-11 bg-white/5 border ${errors.major ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
-                          />
-                          <datalist id="majors">
-                            <option value="Computer Science & Engineering" />
-                            <option value="Electrical & Electronic Engineering" />
-                            <option value="Mechanical Engineering" />
-                            <option value="Civil Engineering" />
-                            <option value="Business Administration" />
-                            <option value="Economics" />
-                            <option value="Physics" />
-                            <option value="Mathematics" />
-                            <option value="Medicine" />
-                            <option value="Law" />
-                          </datalist>
-                        </div>
-                        {errors.major && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.major}</p>}
+                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Field of Study / Major</label>
+                        {!regForm.isCustomMajor ? (
+                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                            <select
+                              name="majorSelect"
+                              onChange={handleRegChange}
+                              value={regForm.major || ""}
+                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
+                            >
+                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Field / Major</option>
+                              {customMajors.map((mjr, idx) => (
+                                <option key={`custom-mjr-${idx}`} value={mjr} className="bg-[#0b1121] text-emerald-400 font-medium">{mjr} (Custom)</option>
+                              ))}
+                              <option value="Computer Science & Engineering" className="bg-[#0b1121] text-slate-200">Computer Science & Engineering</option>
+                              <option value="Electrical & Electronic Engineering" className="bg-[#0b1121] text-slate-200">Electrical & Electronic Engineering</option>
+                              <option value="Mechanical Engineering" className="bg-[#0b1121] text-slate-200">Mechanical Engineering</option>
+                              <option value="Civil Engineering" className="bg-[#0b1121] text-slate-200">Civil Engineering</option>
+                              <option value="Business Administration" className="bg-[#0b1121] text-slate-200">Business Administration</option>
+                              <option value="Economics" className="bg-[#0b1121] text-slate-200">Economics</option>
+                              <option value="Physics" className="bg-[#0b1121] text-slate-200">Physics</option>
+                              <option value="Mathematics" className="bg-[#0b1121] text-slate-200">Mathematics</option>
+                              <option value="Medicine" className="bg-[#0b1121] text-slate-200">Medicine</option>
+                              <option value="Law" className="bg-[#0b1121] text-slate-200">Law</option>
+                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Field/Major? Add custom</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
+                          </div>
+                        ) : (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="relative flex flex-col gap-2"
+                          >
+                            <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6]" />
+                              <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-glow" />
+                              <input
+                                type="text"
+                                name="major"
+                                value={regForm.major}
+                                onChange={handleRegChange}
+                                placeholder="Enter Custom Field / Major"
+                                className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
+                              />
+                            </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <button 
+                                type="button" 
+                                onClick={() => setRegForm(prev => ({...prev, isCustomMajor: false, major: ''}))} 
+                                className="text-[10px] text-primary-glow hover:underline font-poppins font-medium"
+                              >
+                                ← Back to list
+                              </button>
+                              <button
+                                type="button"
+                                onClick={saveCustomMajor}
+                                disabled={isSavingMajor}
+                                className={`relative px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[10px] transition-all shadow-[0_2px_10px_rgba(16,185,129,0.2)] hover:shadow-[0_2px_15px_rgba(16,185,129,0.4)] cursor-pointer overflow-hidden ${isSavingMajor ? 'opacity-80 pointer-events-none' : ''}`}
+                              >
+                                {isSavingMajor && <span className="absolute inset-0 animate-shimmer rounded-xl" />}
+                                {isSavingMajor ? 'Saving…' : 'Save Major'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                        {errors.major && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.major}</p>}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Session / Batch */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Session / Batch</label>
-                        <div className="relative">
-                          <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                          <input
-                            type="text"
-                            name="session"
-                            list="sessions"
-                            value={regForm.session}
-                            onChange={handleRegChange}
-                            placeholder="e.g. 2021-2022"
-                            className={`w-full h-11 bg-white/5 border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
-                          />
-                          <datalist id="sessions">
-                            <option value="2019-2020" />
-                            <option value="2020-2021" />
-                            <option value="2021-2022" />
-                            <option value="2022-2023" />
-                            <option value="2023-2024" />
-                            <option value="2024-2025" />
-                          </datalist>
-                        </div>
+                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Session / Batch</label>
+                        {!regForm.isCustomSession ? (
+                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                            <select
+                              name="sessionSelect"
+                              onChange={handleRegChange}
+                              value={regForm.session || ""}
+                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
+                            >
+                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Session / Batch</option>
+                              {customSessions.map((ses, idx) => (
+                                <option key={`custom-ses-${idx}`} value={ses} className="bg-[#0b1121] text-emerald-400 font-medium">{ses} (Custom)</option>
+                              ))}
+                              <option value="2019-2020" className="bg-[#0b1121] text-slate-200">2019-2020</option>
+                              <option value="2020-2021" className="bg-[#0b1121] text-slate-200">2020-2021</option>
+                              <option value="2021-2022" className="bg-[#0b1121] text-slate-200">2021-2022</option>
+                              <option value="2022-2023" className="bg-[#0b1121] text-slate-200">2022-2023</option>
+                              <option value="2023-2024" className="bg-[#0b1121] text-slate-200">2023-2024</option>
+                              <option value="2024-2025" className="bg-[#0b1121] text-slate-200">2024-2025</option>
+                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Session? Add custom</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
+                          </div>
+                        ) : (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="relative flex flex-col gap-2"
+                          >
+                            <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6]" />
+                              <CheckCircle2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-glow" />
+                              <input
+                                type="text"
+                                name="session"
+                                value={regForm.session}
+                                onChange={handleRegChange}
+                                placeholder="Enter Custom Session (e.g. 2025-2026)"
+                                className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
+                              />
+                            </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <button 
+                                type="button" 
+                                onClick={() => setRegForm(prev => ({...prev, isCustomSession: false, session: ''}))} 
+                                className="text-[10px] text-primary-glow hover:underline font-poppins font-medium"
+                              >
+                                ← Back to list
+                              </button>
+                              <button
+                                type="button"
+                                onClick={saveCustomSession}
+                                disabled={isSavingSession}
+                                className={`relative px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[10px] transition-all shadow-[0_2px_10px_rgba(16,185,129,0.2)] hover:shadow-[0_2px_15px_rgba(16,185,129,0.4)] cursor-pointer overflow-hidden ${isSavingSession ? 'opacity-80 pointer-events-none' : ''}`}
+                              >
+                                {isSavingSession && <span className="absolute inset-0 animate-shimmer rounded-xl" />}
+                                {isSavingSession ? 'Saving…' : 'Save Session'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
 
                       {/* Academic Role */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Academic Role</label>
-                        <div className="relative">
-                          <select
-                            name="role"
-                            value={regForm.role}
-                            onChange={handleRegChange}
-                            className="w-full h-11 bg-[#090d16] border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none cursor-pointer appearance-none transition-all"
+                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Academic Role</label>
+                        {!regForm.isCustomRole ? (
+                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                            <select
+                              name="roleSelect"
+                              value={regForm.role || ""}
+                              onChange={handleRegChange}
+                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
+                            >
+                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Academic Role</option>
+                              {customRoles.map((rl, idx) => (
+                                <option key={`custom-rl-${idx}`} value={rl} className="bg-[#0b1121] text-emerald-400 font-medium">{rl} (Custom)</option>
+                              ))}
+                              <option value="Undergraduate" className="bg-[#0b1121] text-slate-200">Undergraduate Student</option>
+                              <option value="Graduate / PhD" className="bg-[#0b1121] text-slate-200">Graduate / PhD Candidate</option>
+                              <option value="Researcher" className="bg-[#0b1121] text-slate-200">Academic Researcher</option>
+                              <option value="Professor" className="bg-[#0b1121] text-slate-200">Professor / Mentor</option>
+                              <option value="Other" className="bg-[#0b1121] text-slate-200">Other Academic Expert</option>
+                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Role? Add custom</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
+                          </div>
+                        ) : (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="relative flex flex-col gap-2"
                           >
-                            <option value="Undergraduate">Undergraduate Student</option>
-                            <option value="Graduate / PhD">Graduate / PhD Candidate</option>
-                            <option value="Researcher">Academic Researcher</option>
-                            <option value="Professor">Professor / Mentor</option>
-                            <option value="Other">Other Academic Expert</option>
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs font-bold font-poppins">▼</div>
-                        </div>
+                            <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6]" />
+                              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-glow" />
+                              <input
+                                type="text"
+                                name="role"
+                                value={regForm.role}
+                                onChange={handleRegChange}
+                                placeholder="Enter Custom Academic Role"
+                                className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
+                              />
+                            </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <button 
+                                type="button" 
+                                onClick={() => setRegForm(prev => ({...prev, isCustomRole: false, role: 'Undergraduate'}))} 
+                                className="text-[10px] text-primary-glow hover:underline font-poppins font-medium"
+                              >
+                                ← Back to list
+                              </button>
+                              <button
+                                type="button"
+                                onClick={saveCustomRole}
+                                disabled={isSavingRole}
+                                className={`relative px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-[10px] transition-all shadow-[0_2px_10px_rgba(16,185,129,0.2)] hover:shadow-[0_2px_15px_rgba(16,185,129,0.4)] cursor-pointer overflow-hidden ${isSavingRole ? 'opacity-80 pointer-events-none' : ''}`}
+                              >
+                                {isSavingRole && <span className="absolute inset-0 animate-shimmer rounded-xl" />}
+                                {isSavingRole ? 'Saving…' : 'Save Role'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
                       {/* Password */}
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Secure Password</label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <div className="group flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Secure Password</label>
+                        <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                           <input
                             type={showPassword ? "text" : "password"}
                             name="password"
                             value={regForm.password}
                             onChange={handleRegChange}
                             placeholder="••••••••"
-                            className={`w-full h-11 bg-white/5 border ${errors.password ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 pr-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                            className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-10 font-poppins"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
-                        {errors.password && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.password}</p>}
+                        {errors.password && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.password}</p>}
                       </div>
                     </div>
 
                     {/* Agree checkbox */}
                     <div className="pt-2">
-                      <label className="flex items-center gap-3 cursor-pointer group select-none">
+                      <label className="flex items-start gap-3.5 cursor-pointer group select-none">
                         <input
                           type="checkbox"
                           checked={regForm.agree}
                           onChange={handleRegCheckbox}
                           className="sr-only"
                         />
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                        <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
                           regForm.agree 
-                            ? 'bg-primary border-primary text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]' 
-                            : 'border-white/20 bg-white/5 group-hover:border-white/40'
+                            ? 'bg-gradient-to-r from-[#2563eb] to-[#8b5cf6] border-transparent text-white shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                            : 'border-white/10 bg-slate-950/50 group-hover:border-white/20'
                         }`}>
-                          {regForm.agree && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          {regForm.agree && <Check className="w-3.5 h-3.5 stroke-[3.5] text-white" />}
                         </div>
                         <span className="text-[11px] text-slate-400 group-hover:text-slate-200 transition-colors font-poppins font-light leading-relaxed">
                           I agree to the <span className="text-primary-glow hover:underline font-normal">UniMind Beta Onboarding Terms</span> and data isolation protocol.
                         </span>
                       </label>
-                      {errors.agree && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.agree}</p>}
+                      {errors.agree && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.agree}</p>}
                     </div>
 
                     {/* Submit Button */}
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.015, translateY: -2 }}
+                      whileTap={{ scale: 0.985 }}
                       type="submit"
-                      className="w-full h-12 bg-primary hover:bg-primary-glow text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 transform hover:-translate-y-0.5 mt-6 cursor-pointer"
+                      className="w-full h-12 bg-gradient-to-r from-[#2563eb] via-[#8b5cf6] to-[#06b6d4] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_4px_20px_rgba(59,130,246,0.35)] hover:shadow-[0_4px_30px_rgba(139,92,246,0.5)] flex items-center justify-center gap-2 mt-6 cursor-pointer relative overflow-hidden group/btn"
                     >
-                      <Sparkles className="w-4 h-4 text-blue-200 animate-pulse" />
-                      Request Beta Access
-                    </button>
+                      <div className="absolute inset-0 w-1/2 h-full bg-white/10 skew-x-[-25deg] -translate-x-full group-hover/btn:animate-marquee pointer-events-none" style={{ animationDuration: '1.5s' }} />
+                      <Sparkles className="w-4 h-4 text-blue-100 animate-pulse" />
+                      <span>Request Beta Access</span>
+                    </motion.button>
 
                     {/* Metadata Suggestion / Request Link */}
                     <div className="text-center mt-4">
@@ -689,6 +1196,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         type="button"
                         onClick={() => {
                           setRequestEmail(regForm.email || '');
+                          setAssociatedUni(regForm.institution || '');
                           setShowRequestModal(true);
                           setRequestStatus('idle');
                           setRequestError('');
@@ -705,55 +1213,57 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 {activeTab === 'login' && (
                   <form onSubmit={handleLoginSubmit} className="space-y-4">
                     {/* Academic Email */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 font-poppins mb-1.5 uppercase tracking-wide">Academic Email</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <div className="group flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Academic Email</label>
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                         <input
                           type="email"
                           name="email"
                           value={loginForm.email}
                           onChange={handleLoginChange}
                           placeholder="adnan@university.edu"
-                          className={`w-full h-11 bg-white/5 border ${errors.email ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                          className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
                         />
                       </div>
-                      {errors.email && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.email}</p>}
+                      {errors.email && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.email}</p>}
                     </div>
 
                     {/* Password */}
-                    <div>
+                    <div className="group flex flex-col">
                       <div className="flex justify-between items-center mb-1.5">
-                        <label className="block text-[11px] font-semibold text-slate-300 font-poppins uppercase tracking-wide">Password</label>
-                        <a href="#" className="text-[10px] text-primary-glow hover:underline font-poppins">Forgot password?</a>
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Password</label>
+                        <a href="#" className="text-[10px] text-primary-glow hover:underline font-poppins font-semibold">Forgot password?</a>
                       </div>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                         <input
                           type={showPassword ? "text" : "password"}
                           name="password"
                           value={loginForm.password}
                           onChange={handleLoginChange}
                           placeholder="••••••••"
-                          className={`w-full h-11 bg-white/5 border ${errors.password ? 'border-red-500/50' : 'border-white/10 focus:border-primary-glow/50'} rounded-xl px-3 pl-10 pr-10 text-xs sm:text-sm text-slate-200 placeholder-slate-600 outline-none transition-all`}
+                          className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-10 font-poppins"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      {errors.password && <p className="text-[10px] text-red-400 mt-1 font-poppins font-medium">{errors.password}</p>}
+                      {errors.password && <p className="text-[10px] text-red-400 mt-1.5 font-poppins font-medium flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" />{errors.password}</p>}
                     </div>
 
                     {/* Keep Signed In */}
                     <div className="pt-2 flex justify-between items-center select-none">
-                      <label className="flex items-center gap-3 cursor-pointer group">
+                      <label className="flex items-center gap-3.5 cursor-pointer group">
                         <input type="checkbox" className="sr-only" defaultChecked />
-                        <div className="w-5 h-5 rounded-md border border-white/20 bg-white/5 flex items-center justify-center transition-all group-hover:border-white/40">
-                          <Check className="w-3.5 h-3.5 stroke-[3] text-primary-glow" />
+                        <div className="w-5 h-5 rounded-lg border border-white/10 bg-slate-950/50 flex items-center justify-center transition-all group-hover:border-white/20 group-has-[:checked]:bg-gradient-to-r group-has-[:checked]:from-[#2563eb] group-has-[:checked]:to-[#8b5cf6] group-has-[:checked]:border-transparent group-has-[:checked]:shadow-[0_0_12px_rgba(59,130,246,0.4)] shrink-0">
+                          <Check className="w-3.5 h-3.5 stroke-[3.5] text-white" />
                         </div>
                         <span className="text-[11px] text-slate-400 group-hover:text-slate-200 transition-colors font-poppins font-light">
                           Keep academic node authorized
@@ -762,13 +1272,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
 
                     {/* Submit Button */}
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.015, translateY: -2 }}
+                      whileTap={{ scale: 0.985 }}
                       type="submit"
-                      className="w-full h-12 bg-primary hover:bg-primary-glow text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 transform hover:-translate-y-0.5 mt-8 cursor-pointer"
+                      className="w-full h-12 bg-gradient-to-r from-[#2563eb] via-[#8b5cf6] to-[#06b6d4] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_4px_20px_rgba(59,130,246,0.35)] hover:shadow-[0_4px_30px_rgba(139,92,246,0.5)] flex items-center justify-center gap-2 mt-8 cursor-pointer relative overflow-hidden group/btn"
                     >
-                      <Brain className="w-4 h-4 text-blue-200" />
-                      Authorize & Enter
-                    </button>
+                      <div className="absolute inset-0 w-1/2 h-full bg-white/10 skew-x-[-25deg] -translate-x-full group-hover/btn:animate-marquee pointer-events-none" style={{ animationDuration: '1.5s' }} />
+                      <Brain className="w-4 h-4 text-blue-100" />
+                      <span>Authorize & Enter</span>
+                    </motion.button>
                   </form>
                 )}
               </motion.div>
@@ -889,7 +1402,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </AnimatePresence>
         </div>
 
-      </div>
+      </motion.div>
 
       {/* Suggestion / Rename Request Modal */}
       <AnimatePresence>
@@ -963,105 +1476,149 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   )}
 
                   {/* Requester Email */}
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Requester Email</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <div className="group flex flex-col">
+                    <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Requester Email</label>
+                    <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-primary to-secondary opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
                       <input
                         type="email"
                         required
                         value={requestEmail}
                         onChange={(e) => setRequestEmail(e.target.value)}
                         placeholder="your.email@university.edu"
-                        className="w-full h-11 bg-white/5 border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 pl-10 text-xs sm:text-sm text-slate-200 outline-none transition-all"
+                        className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     {/* Request Type */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Change Category</label>
-                      <div className="relative">
+                    <div className="group flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Change Category</label>
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
                         <select
                           value={requestType}
                           onChange={(e) => setRequestType(e.target.value as any)}
-                          className="w-full h-11 bg-[#090d16] border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 text-xs text-slate-200 outline-none appearance-none transition-all cursor-pointer"
+                          className="w-full h-11 bg-transparent text-xs text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
                         >
-                          <option value="institution">University / Inst.</option>
-                          <option value="major">Field / Major</option>
-                          <option value="session">Session / Batch</option>
+                          <option value="institution" className="bg-[#0b1121] text-slate-200">University / Inst.</option>
+                          <option value="major" className="bg-[#0b1121] text-slate-200">Field / Major (Subject)</option>
+                          <option value="session" className="bg-[#0b1121] text-slate-200">Session / Batch</option>
+                          <option value="role" className="bg-[#0b1121] text-slate-200">Academic Role</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
                       </div>
                     </div>
 
                     {/* Action Type */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Action Requested</label>
-                      <div className="relative">
+                    <div className="group flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Action Requested</label>
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
                         <select
                           value={actionType}
                           onChange={(e) => setActionType(e.target.value as any)}
-                          className="w-full h-11 bg-[#090d16] border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 text-xs text-slate-200 outline-none appearance-none transition-all cursor-pointer"
+                          className="w-full h-11 bg-transparent text-xs text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
                         >
-                          <option value="add">Add Unlisted</option>
-                          <option value="rename">Rename / Fix Typo</option>
+                          <option value="add" className="bg-[#0b1121] text-slate-200">Add Unlisted</option>
+                          <option value="rename" className="bg-[#0b1121] text-slate-200">Rename / Fix Typo</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
                       </div>
                     </div>
                   </div>
 
+                  {/* Associated University linkage (Only show for major, session, or role suggestions) */}
+                  {requestType !== 'institution' && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="group flex flex-col"
+                    >
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 font-poppins uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">
+                          Associate Under University
+                        </label>
+                        <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md font-medium uppercase font-poppins">Required Linkage</span>
+                      </div>
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                        <School className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary-glow transition-colors duration-300" />
+                        <input
+                          type="text"
+                          required
+                          value={associatedUni}
+                          onChange={(e) => setAssociatedUni(e.target.value)}
+                          placeholder="e.g. Gazipur Agricultural University"
+                          className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none pl-11 pr-4 font-poppins"
+                        />
+                      </div>
+                      <p className="text-[9px] text-slate-500 font-light mt-1 font-poppins">This subject, session or role will be uniquely associated under this university.</p>
+                    </motion.div>
+                  )}
+
                   {/* Existing name (typo) field if rename selected */}
                   {actionType === 'rename' && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
+                      className="group flex flex-col"
                     >
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">Current Listed Name (with typo)</label>
-                      <input
-                        type="text"
-                        required
-                        value={oldValue}
-                        onChange={(e) => setOldValue(e.target.value)}
-                        placeholder="e.g. Dhaka Univarsity"
-                        className="w-full h-11 bg-white/5 border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none transition-all"
-                      />
+                      <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Current Listed Name (with typo)</label>
+                      <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                        <input
+                          type="text"
+                          required
+                          value={oldValue}
+                          onChange={(e) => setOldValue(e.target.value)}
+                          placeholder="e.g. Dhaka Univarsity"
+                          className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins"
+                        />
+                      </div>
                     </motion.div>
                   )}
 
                   {/* New value field */}
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wide">
+                  <div className="group flex flex-col">
+                    <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">
                       {actionType === 'add' ? 'Proposed New Entry Name' : 'Corrected Name'}
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={newValue}
-                      onChange={(e) => setNewValue(e.target.value)}
-                      placeholder={
-                        requestType === 'institution' ? 'e.g. University of Dhaka' :
-                        requestType === 'major' ? 'e.g. Software Engineering' : 'e.g. 2025-2026'
-                      }
-                      className="w-full h-11 bg-white/5 border border-white/10 focus:border-primary-glow/50 rounded-xl px-3 text-xs sm:text-sm text-slate-200 outline-none transition-all"
-                    />
+                    <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
+                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+                      <input
+                        type="text"
+                        required
+                        value={newValue}
+                        onChange={(e) => setNewValue(e.target.value)}
+                        placeholder={
+                          requestType === 'institution' ? 'e.g. University of Dhaka' :
+                          requestType === 'major' ? 'e.g. Software Engineering' :
+                          requestType === 'session' ? 'e.g. 2025-2026' : 'e.g. Professor / Mentor'
+                        }
+                        className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins"
+                      />
+                    </div>
                   </div>
 
                   {/* Submit Button */}
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.015, translateY: -2 }}
+                    whileTap={{ scale: 0.985 }}
                     type="submit"
                     disabled={requestStatus === 'submitting'}
-                    className="w-full h-12 bg-primary hover:bg-primary-glow text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 transform hover:-translate-y-0.5 mt-6 cursor-pointer disabled:opacity-50"
+                    className="w-full h-12 bg-gradient-to-r from-[#2563eb] via-[#8b5cf6] to-[#06b6d4] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-[0_4px_20px_rgba(59,130,246,0.35)] hover:shadow-[0_4px_30px_rgba(139,92,246,0.5)] flex items-center justify-center gap-2 mt-6 cursor-pointer relative overflow-hidden group/btn disabled:opacity-50"
                   >
+                    <div className="absolute inset-0 w-1/2 h-full bg-white/10 skew-x-[-25deg] -translate-x-full group-hover/btn:animate-marquee pointer-events-none" style={{ animationDuration: '1.5s' }} />
                     {requestStatus === 'submitting' ? (
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <PlusCircle className="w-4 h-4" />
                     )}
                     <span>Submit Suggestion</span>
-                  </button>
+                  </motion.button>
                 </form>
               )}
             </motion.div>

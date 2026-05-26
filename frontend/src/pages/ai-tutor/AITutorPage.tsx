@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { AITutorHeader } from './AITutorHeader';
 import { ChatMessages } from './ChatMessages';
 import { SuggestedPrompts } from './SuggestedPrompts';
@@ -205,7 +205,7 @@ export const AITutorPage = () => {
   }, [messages, isTyping]);
 
   const initConversation = useCallback(async (uid: string) => {
-    const { data: newConv } = await supabase
+    const { data: newConv } = await turso
       .from('ai_conversations')
       .insert([{ user_id: uid }])
       .select()
@@ -220,17 +220,17 @@ export const AITutorPage = () => {
     const fetchData = async () => {
       // Fetch prompts (with graceful failure)
       try {
-        const { data: prompts } = await supabase.from('ai_prompts').select('*');
+        const { data: prompts } = await turso.from('ai_prompts').select('*');
         if (prompts && prompts.length > 0) setDbPrompts(prompts);
       } catch (_) { /* use fallback prompts */ }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
         setUserName(user.user_metadata?.name || user.email?.split('@')[0] || 'Scholar');
 
         // Fetch or create conversation
-        const { data: convs } = await supabase
+        const { data: convs } = await turso
           .from('ai_conversations')
           .select('id')
           .eq('user_id', user.id)
@@ -246,7 +246,7 @@ export const AITutorPage = () => {
         }
 
         if (convId) {
-          const { data: msgs } = await supabase
+          const { data: msgs } = await turso
             .from('ai_messages')
             .select('*')
             .eq('conversation_id', convId)
@@ -287,7 +287,7 @@ export const AITutorPage = () => {
 
     // Save user msg to DB
     if (activeConvId) {
-      await supabase.from('ai_messages').insert([{
+      await turso.from('ai_messages').insert([{
         conversation_id: activeConvId,
         role: 'user',
         content: messageText
@@ -310,7 +310,7 @@ export const AITutorPage = () => {
       const aiMsg = { id: Date.now() + 1, role: 'assistant', content: aiContent, timestamp: 'Just now' };
 
       if (activeConvId) {
-        const { data: inserted } = await supabase.from('ai_messages').insert([{
+        const { data: inserted } = await turso.from('ai_messages').insert([{
           conversation_id: activeConvId,
           role: 'assistant',
           content: aiContent

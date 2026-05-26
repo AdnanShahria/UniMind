@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { ResearchHeader } from './ResearchHeader';
 import { ResearchPapersList } from './ResearchPapersList';
 import { CollaboratorsList } from './CollaboratorsList';
@@ -13,12 +13,12 @@ export const ResearchPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserName(user.user_metadata?.name?.split(' ')[0] || 'Scholar');
 
         // Fetch Papers
-        const { data: userPapers } = await supabase
+        const { data: userPapers } = await turso
           .from('research_papers')
           .select('*')
           .eq('user_id', user.id)
@@ -38,7 +38,7 @@ export const ResearchPage = () => {
         }
 
         // Fetch Collaborators
-        const { data: collaborators } = await supabase
+        const { data: collaborators } = await turso
           .from('research_collaborators')
           .select('*')
           .eq('user_id', user.id)

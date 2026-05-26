@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { PostCard } from '../../components/feed/PostCard';
 import { UserPlus, UserCheck, ArrowLeft } from 'lucide-react';
 
@@ -19,13 +19,13 @@ export const ProfilePage = () => {
   }, [id]);
 
   const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     setCurrentUser(user);
 
     if (!id) return;
 
     // Fetch profile user
-    const { data: userData } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+    const { data: userData } = await turso.from('users').select('*').eq('id', id).maybeSingle();
     if (userData) {
       setProfileUser(userData);
     } else {
@@ -34,7 +34,7 @@ export const ProfilePage = () => {
     }
 
     // Fetch posts
-    const { data: postsData } = await supabase
+    const { data: postsData } = await turso
       .from('posts')
       .select('*, users(name, role)')
       .eq('author_id', id)
@@ -43,23 +43,23 @@ export const ProfilePage = () => {
 
     // Fetch connection status
     if (user && user.id !== id) {
-      const { data: conn } = await supabase.from('connections').select('*').eq('user_id', user.id).eq('friend_id', id).maybeSingle();
+      const { data: conn } = await turso.from('connections').select('*').eq('user_id', user.id).eq('friend_id', id).maybeSingle();
       setIsFollowing(!!conn);
     }
 
     // Fetch followers count
-    const { count } = await supabase.from('connections').select('*', { count: 'exact', head: true }).eq('friend_id', id);
+    const { count } = await turso.from('connections').select('*', { count: 'exact', head: true }).eq('friend_id', id);
     setFollowersCount(count || 0);
   };
 
   const handleFollow = async () => {
     if (!currentUser) return;
     if (isFollowing) {
-      await supabase.from('connections').delete().eq('user_id', currentUser.id).eq('friend_id', id);
+      await turso.from('connections').delete().eq('user_id', currentUser.id).eq('friend_id', id);
       setIsFollowing(false);
       setFollowersCount(prev => prev - 1);
     } else {
-      await supabase.from('connections').insert([{ user_id: currentUser.id, friend_id: id, status: 'accepted' }]);
+      await turso.from('connections').insert([{ user_id: currentUser.id, friend_id: id, status: 'accepted' }]);
       setIsFollowing(true);
       setFollowersCount(prev => prev + 1);
     }

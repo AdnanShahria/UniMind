@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import {
   LayoutDashboard,
   Newspaper,
@@ -51,9 +51,9 @@ export const Sidebar = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
-        const { data } = await supabase.from('users').select('name, avatar_url, role').eq('id', user.id).single();
+        const { data } = await turso.from('users').select('name, avatar_url, role').eq('id', user.id).single();
         const name = data?.name || user.user_metadata?.name || 'Scholar';
         const role = data?.role || user.user_metadata?.role || '';
         setUserName(name);
@@ -347,7 +347,7 @@ export const Sidebar = () => {
           {/* Normal LogOut Button */}
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
+              await turso.auth.signOut();
               window.location.href = '/login';
             }}
             className="block w-full outline-none mt-1"

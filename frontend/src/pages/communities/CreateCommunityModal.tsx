@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Globe, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 export const CreateCommunityModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [name, setName] = useState('');
@@ -19,7 +19,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: { isOpen: boolean; onC
     }
 
     setIsSubmitting(true);
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: userData } = await turso.auth.getUser();
     if (!userData.user) {
       toast.error('Please login first');
       setIsSubmitting(false);
@@ -27,7 +27,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: { isOpen: boolean; onC
     }
 
     // 1. Create Community
-    const { data: communityData, error: commError } = await supabase.from('communities').insert({
+    const { data: communityData, error: commError } = await turso.from('communities').insert({
       name,
       description,
       type,
@@ -42,7 +42,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: { isOpen: boolean; onC
     }
 
     // 2. Assign current user as Owner in community_members
-    const { error: memberError } = await supabase.from('community_members').insert({
+    const { error: memberError } = await turso.from('community_members').insert({
       community_id: communityData.id,
       user_id: userData.user.id,
       role: 'owner' // Assign Owner role

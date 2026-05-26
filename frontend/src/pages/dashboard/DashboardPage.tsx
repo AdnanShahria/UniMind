@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { WelcomeHeader } from './WelcomeHeader';
 import { StatsGrid } from './StatsGrid';
 import { RecentActivity } from './RecentActivity';
@@ -23,7 +23,7 @@ export const DashboardPage = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (!user) {
         setIsLoading(false);
         return;
@@ -31,14 +31,19 @@ export const DashboardPage = () => {
       setUserName(user.user_metadata?.name?.split(' ')[0] || 'Scholar');
 
       // 1. Fetch recent activity (from posts)
-      const { data: posts } = await supabase
-        .from('posts')
-        .select('content, created_at, type')
-        .order('created_at', { ascending: false })
-        .limit(5);
+      let posts = null;
+      try {
+        const response = await fetch('http://localhost:8787/api/feed');
+        const json = await response.json();
+        if (json.success && json.data) {
+          posts = json.data;
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard feed:', err);
+      }
 
       if (posts) {
-        setRecentActivity(posts.map(post => {
+        setRecentActivity(posts.map((post: any) => {
           const diff = Date.now() - new Date(post.created_at).getTime();
           const mins = Math.floor(diff / 60000);
           const timeStr = mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
@@ -55,7 +60,7 @@ export const DashboardPage = () => {
       }
 
       // 2. Fetch AI Suggestions
-      const { data: suggestions } = await supabase
+      const { data: suggestions } = await turso
         .from('ai_suggestions')
         .select('*')
         .eq('user_id', user.id)
@@ -64,7 +69,7 @@ export const DashboardPage = () => {
       if (suggestions) setAiSuggestions(suggestions);
 
       // 3. Fetch Upcoming Tasks
-      const { data: tasks } = await supabase
+      const { data: tasks } = await turso
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)

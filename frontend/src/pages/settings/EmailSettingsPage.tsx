@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 
 export const EmailSettingsPage = () => {
@@ -10,7 +10,7 @@ export const EmailSettingsPage = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       setCurrentUser(user);
     };
     fetchUser();
@@ -21,7 +21,7 @@ export const EmailSettingsPage = () => {
       setEmailStatus({ type: 'error', msg: 'Please enter a valid email address.' });
       return;
     }
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    const { error } = await turso.auth.updateUser({ email: newEmail });
     if (error) {
       setEmailStatus({ type: 'error', msg: error.message });
     } else {

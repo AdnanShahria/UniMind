@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Globe, CheckCircle } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 const LANGUAGES = [
   { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
@@ -54,10 +54,10 @@ export const LanguageSettingsPage = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase
+        const { data } = await turso
           .from('user_preferences')
           .select('language, timezone, date_format, number_format')
           .eq('user_id', user.id)
@@ -76,7 +76,7 @@ export const LanguageSettingsPage = () => {
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('user_preferences').upsert(
+    await turso.from('user_preferences').upsert(
       { user_id: userId, language, timezone, date_format: dateFormat, number_format: numberFormat },
       { onConflict: 'user_id' }
     );

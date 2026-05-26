@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { PlannerHeader } from './PlannerHeader';
 import { TodaySchedule } from './TodaySchedule';
 import { WeeklyGoals } from './WeeklyGoals';
@@ -27,20 +27,20 @@ export const PlannerPage = () => {
   } | null>(null);
 
   const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (user) {
       setUserName(user.user_metadata?.name?.split(' ')[0] || 'Scholar');
       
       // Fetch long-term goals
-      const { data: ltgs } = await supabase.from('long_term_goals').select('*').eq('user_id', user.id);
+      const { data: ltgs } = await turso.from('long_term_goals').select('*').eq('user_id', user.id);
       if (ltgs) setDbLongTermGoals(ltgs);
 
       // Fetch weekly goals
-      const { data: goals } = await supabase.from('weekly_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+      const { data: goals } = await turso.from('weekly_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
       if (goals) setDbGoals(goals);
 
       // Fetch tasks
-      const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', user.id).order('due_date', { ascending: true });
+      const { data: tasks } = await turso.from('tasks').select('*').eq('user_id', user.id).order('due_date', { ascending: true });
       if (tasks) {
         setDbTasks(tasks.map(t => {
            const date = new Date(t.due_date);
@@ -140,15 +140,15 @@ export const PlannerPage = () => {
       setDbLongTermGoals(prev => prev.map(ltg => ltg.id === finalLtgId ? { ...ltg, progress: finalLtgProgress } : ltg));
       
       // Update in DB
-      await supabase.from('long_term_goals').update({ progress: finalLtgProgress }).eq('id', finalLtgId);
+      await turso.from('long_term_goals').update({ progress: finalLtgProgress }).eq('id', finalLtgId);
     }
 
     // Persist task and weekly goal updates to DB
     const statusVal = newStatus === 'done' ? 'completed' : 'pending';
-    await supabase.from('tasks').update({ status: statusVal }).eq('id', taskId);
+    await turso.from('tasks').update({ status: statusVal }).eq('id', taskId);
 
     if (targetWgId) {
-      await supabase.from('weekly_goals').update({ completed_segments: newWgCompleted }).eq('id', targetWgId);
+      await turso.from('weekly_goals').update({ completed_segments: newWgCompleted }).eq('id', targetWgId);
     }
     
     // Final sync
@@ -156,15 +156,15 @@ export const PlannerPage = () => {
   };
 
   const handleObjectiveCreate = async (type: 'task' | 'weekly' | 'long-term', data: any) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) return;
 
     if (data.id) {
       // EDIT MODE
       if (type === 'long-term') {
-        await supabase.from('long_term_goals').update({ title: data.title }).eq('id', data.id);
+        await turso.from('long_term_goals').update({ title: data.title }).eq('id', data.id);
       } else if (type === 'weekly') {
-        await supabase.from('weekly_goals')
+        await turso.from('weekly_goals')
           .update({ 
             goal: data.title, 
             long_term_goal_id: data.parentId || null 
@@ -185,7 +185,7 @@ export const PlannerPage = () => {
           updateObj.long_term_goal_id = data.parentId || null;
           updateObj.weekly_goal_id = null;
         }
-        await supabase.from('tasks').update(updateObj).eq('id', data.id);
+        await turso.from('tasks').update(updateObj).eq('id', data.id);
 
         // Adjust parent counts if oldParentId changed
         if (data.parentType === 'weekly' && data.parentId !== oldParentId) {
@@ -196,7 +196,7 @@ export const PlannerPage = () => {
               const newCompleted = existingTask.status === 'done' 
                 ? Math.max(0, (oldWg.completed_segments || 0) - 1) 
                 : (oldWg.completed_segments || 0);
-              await supabase.from('weekly_goals')
+              await turso.from('weekly_goals')
                 .update({ target_segments: newTarget, completed_segments: newCompleted })
                 .eq('id', oldParentId);
             }
@@ -208,7 +208,7 @@ export const PlannerPage = () => {
               const newCompleted = existingTask.status === 'done' 
                 ? (newWg.completed_segments || 0) + 1 
                 : (newWg.completed_segments || 0);
-              await supabase.from('weekly_goals')
+              await turso.from('weekly_goals')
                 .update({ target_segments: newTarget, completed_segments: newCompleted })
                 .eq('id', data.parentId);
             }
@@ -218,9 +218,9 @@ export const PlannerPage = () => {
     } else {
       // CREATE MODE
       if (type === 'long-term') {
-        await supabase.from('long_term_goals').insert([{ user_id: user.id, title: data.title }]);
+        await turso.from('long_term_goals').insert([{ user_id: user.id, title: data.title }]);
       } else if (type === 'weekly') {
-        await supabase.from('weekly_goals').insert([{ user_id: user.id, goal: data.title, long_term_goal_id: data.parentId || null }]);
+        await turso.from('weekly_goals').insert([{ user_id: user.id, goal: data.title, long_term_goal_id: data.parentId || null }]);
       } else if (type === 'task') {
         const due = data.date ? new Date(data.date) : new Date();
         if (!data.date) {
@@ -242,12 +242,12 @@ export const PlannerPage = () => {
             insertObj.weekly_goal_id = data.parentId;
           }
         }
-        await supabase.from('tasks').insert([insertObj]);
+        await turso.from('tasks').insert([insertObj]);
         
         if (data.parentType === 'weekly' && data.parentId) {
           const targetWg = dbGoals.find(g => g.id === data.parentId);
           if (targetWg) {
-            await supabase.from('weekly_goals').update({ target_segments: (targetWg.target_segments || 0) + 1 }).eq('id', data.parentId);
+            await turso.from('weekly_goals').update({ target_segments: (targetWg.target_segments || 0) + 1 }).eq('id', data.parentId);
           }
         }
       }
@@ -302,9 +302,9 @@ export const PlannerPage = () => {
     (async () => {
       try {
         if (type === 'long-term') {
-          await supabase.from('long_term_goals').delete().eq('id', id);
+          await turso.from('long_term_goals').delete().eq('id', id);
         } else if (type === 'weekly') {
-          await supabase.from('weekly_goals').delete().eq('id', id);
+          await turso.from('weekly_goals').delete().eq('id', id);
         } else if (type === 'task') {
           const task = dbTasks.find(t => t.id === id);
           if (task && task.weekly_goal_id) {
@@ -314,12 +314,12 @@ export const PlannerPage = () => {
               const newCompleted = task.status === 'done' 
                 ? Math.max(0, (wg.completed_segments || 0) - 1) 
                 : (wg.completed_segments || 0);
-              await supabase.from('weekly_goals')
+              await turso.from('weekly_goals')
                 .update({ target_segments: newTarget, completed_segments: newCompleted })
                 .eq('id', task.weekly_goal_id);
             }
           }
-          await supabase.from('tasks').delete().eq('id', id);
+          await turso.from('tasks').delete().eq('id', id);
         }
       } catch (error) {
         console.error('Error executing delete operation:', error);

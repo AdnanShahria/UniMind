@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { MessagesSidebar } from './MessagesSidebar';
 import { ChatArea } from './ChatArea';
 
@@ -12,7 +12,7 @@ export const MessagesPage = () => {
 
   useEffect(() => {
     const fetchConversations = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (!user) {
         setIsLoading(false);
         return;
@@ -20,14 +20,14 @@ export const MessagesPage = () => {
       setCurrentUser(user);
 
       // Fetch conversations the user is part of
-      const { data: userConvs } = await supabase
+      const { data: userConvs } = await turso
         .from('conversation_members')
         .select('conversation_id')
         .eq('user_id', user.id);
 
       if (userConvs && userConvs.length > 0) {
         const convIds = userConvs.map((c: any) => c.conversation_id);
-        const { data: convData } = await supabase
+        const { data: convData } = await turso
           .from('conversations')
           .select('*')
           .in('id', convIds)
@@ -57,7 +57,7 @@ export const MessagesPage = () => {
   useEffect(() => {
     if (activeConv) {
       const fetchMessages = async () => {
-        const { data } = await supabase
+        const { data } = await turso
           .from('messages')
           .select('*, users(name)')
           .eq('conversation_id', activeConv.id)

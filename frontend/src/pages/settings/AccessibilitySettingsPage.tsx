@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Monitor, CheckCircle, Eye, Zap, Keyboard } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 const Toggle = ({ value, onChange, color = 'bg-orange-500' }: { value: boolean; onChange: () => void; color?: string }) => (
   <button onClick={onChange}
@@ -29,10 +29,10 @@ export const AccessibilitySettingsPage = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase
+        const { data } = await turso
           .from('user_preferences')
           .select('reduce_motion, high_contrast, screen_reader_hints')
           .eq('user_id', user.id)
@@ -52,7 +52,7 @@ export const AccessibilitySettingsPage = () => {
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
+    await turso.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
     setSaving(false);
     setShowSaved(true);
     setTimeout(() => setShowSaved(false), 2500);

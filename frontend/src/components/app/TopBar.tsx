@@ -19,7 +19,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import toast from 'react-hot-toast';
 
 const quickSearchSuggestions = [
@@ -44,10 +44,10 @@ export const TopBar = () => {
   useEffect(() => {
     let channel: any;
     const initNotificationsAndProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         // Fetch User profile info
-        const { data: profile } = await supabase
+        const { data: profile } = await turso
           .from('users')
           .select('name')
           .eq('id', user.id)
@@ -57,7 +57,7 @@ export const TopBar = () => {
         setUserInitial(name[0].toUpperCase());
 
         // Fetch initial Notifications
-        const { data: notifs } = await supabase
+        const { data: notifs } = await turso
           .from('notifications')
           .select('*')
           .eq('user_id', user.id)
@@ -66,7 +66,7 @@ export const TopBar = () => {
         if (notifs) setNotifications(notifs);
 
         // Realtime Subscription
-        channel = supabase
+        channel = turso
           .channel(`user-notifications-${user.id}`)
           .on(
             'postgres_changes',
@@ -78,7 +78,7 @@ export const TopBar = () => {
             },
             async (payload: any) => {
               // Re-fetch notifications to ensure proper sort order
-              const { data: refetched } = await supabase
+              const { data: refetched } = await turso
                 .from('notifications')
                 .select('*')
                 .eq('user_id', user.id)
@@ -105,7 +105,7 @@ export const TopBar = () => {
     initNotificationsAndProfile();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channel) turso.removeChannel(channel);
     };
   }, []);
 
@@ -113,23 +113,23 @@ export const TopBar = () => {
 
   const markAsRead = async (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    await turso.from('notifications').update({ is_read: true }).eq('id', id);
   };
 
   const markAllAsRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (user) {
-      await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
+      await turso.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
       toast.success("All notifications marked as read", { id: 'notif-read-toast' });
     }
   };
 
   const clearAllNotifications = async () => {
     setNotifications([]);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (user) {
-      await supabase.from('notifications').delete().eq('user_id', user.id);
+      await turso.from('notifications').delete().eq('user_id', user.id);
       toast.success("Notifications cleared", { id: 'notif-clear-toast' });
     }
   };

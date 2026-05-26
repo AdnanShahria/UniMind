@@ -13,6 +13,8 @@
     --color-slate-200-rgb: 51 65 85;
     --color-slate-400-rgb: 100 116 139;
     --color-slate-500-rgb: 148 163 184;
+    --color-primary-rgb: 59 130 246;     /* Default primary fallback: blue-500 */
+    --color-primary-glow-rgb: 96 165 250; /* Default primary glow fallback: blue-400 */
   }
 
   .dark {
@@ -27,6 +29,8 @@
     --color-slate-200-rgb: 226 232 240;
     --color-slate-400-rgb: 148 163 184;
     --color-slate-500-rgb: 100 116 139;
+    --color-primary-rgb: 59 130 246;     /* Default primary fallback: blue-500 */
+    --color-primary-glow-rgb: 96 165 250; /* Default primary glow fallback: blue-400 */
   }
 
   /* ===== MIDNIGHT OCEAN THEME ===== */
@@ -277,6 +281,31 @@ html.scrollbar-hidden {
   animation: spin-reverse 1.5s linear infinite;
 }
 
+/* Shimmer sweep for save buttons */
+@keyframes shimmer-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background-image: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.35) 37%,
+    transparent 50%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.4s ease-in-out infinite;
+}
+
+/* Breathing glow-pulse for the Save University CTA */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.25), 0 0 20px rgba(16, 185, 129, 0.15); }
+  50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.55), 0 0 36px rgba(16, 185, 129, 0.30), 0 0 60px rgba(16, 185, 129, 0.10); }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
 /* Animation Delays */
 .animation-delay-2000 {
   animation-delay: 2s;
@@ -312,3 +341,15 @@ html.scrollbar-hidden {
 .dark .border-b-white\/\[0\.04\]{ border-bottom-color: rgba(100, 120, 160, 0.06) !important; }
 .dark .border-b-white\/\[0\.06\]{ border-bottom-color: rgba(100, 120, 160, 0.09) !important; }
 .dark .border-t-white\/\[0\.06\]{ border-top-color:    rgba(100, 120, 160, 0.09) !important; }
+
+/* ===== GLOBAL BROWSER AUTOFILL OVERRIDE ===== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0b1121 inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  caret-color: #f8fafc !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+

@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Smile, MessageCircle, Send, Link as LinkIcon, Users, UserPlus, Globe } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ export const ShareModal = ({ isOpen, onClose, post, currentUser, onShareContent 
     setIsLoadingFriends(true);
     try {
       // 1. Get conversations the user is part of
-      const { data: userConvs } = await supabase
+      const { data: userConvs } = await turso
         .from('conversation_members')
         .select('conversation_id')
         .eq('user_id', currentUser.id);
@@ -41,7 +41,7 @@ export const ShareModal = ({ isOpen, onClose, post, currentUser, onShareContent 
       const convIds = userConvs.map((c: any) => c.conversation_id);
 
       // 2. Get other members in these conversations
-      const { data: otherMembers } = await supabase
+      const { data: otherMembers } = await turso
         .from('conversation_members')
         .select('user_id, users(name, avatar_url)')
         .in('conversation_id', convIds)

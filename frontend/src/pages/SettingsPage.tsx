@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { turso } from '../utils/tursoClient';
 import {
   Settings,
   User,
@@ -65,10 +65,10 @@ export const SettingsPage = () => {
 
   useEffect(() => {
     const fetchUserAndStats = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         // Fetch extended profile
-        const { data: profileData } = await supabase.from('users').select('*').eq('id', user.id).single();
+        const { data: profileData } = await turso.from('users').select('*').eq('id', user.id).single();
         
         setUserProfile({
           id: user.id,
@@ -83,10 +83,10 @@ export const SettingsPage = () => {
         });
 
         // Fetch real counts
-        const { count: postCount } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('author_id', user.id);
-        const { count: likeCount } = await supabase.from('post_likes').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
-        const { count: commentCount } = await supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('author_id', user.id);
-        const { count: shareCount } = await supabase.from('post_shares').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+        const { count: postCount } = await turso.from('posts').select('*', { count: 'exact', head: true }).eq('author_id', user.id);
+        const { count: likeCount } = await turso.from('post_likes').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+        const { count: commentCount } = await turso.from('post_comments').select('*', { count: 'exact', head: true }).eq('author_id', user.id);
+        const { count: shareCount } = await turso.from('post_shares').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
 
         setPostStats({
           posts: postCount || 0,

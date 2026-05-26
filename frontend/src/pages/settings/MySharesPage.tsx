@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { Share2, Search, X, Calendar, User } from 'lucide-react';
 
@@ -29,10 +29,10 @@ export const MySharesPage = () => {
 
   const fetchShares = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data } = await supabase
+    const { data } = await turso
       .from('post_shares')
       .select(`
         id, share_note, created_at, post_id,
@@ -52,7 +52,7 @@ export const MySharesPage = () => {
 
   const handleUnshare = async (shareId: string) => {
     setUnsharingId(shareId);
-    await supabase.from('post_shares').delete().eq('id', shareId);
+    await turso.from('post_shares').delete().eq('id', shareId);
     setShares(prev => prev.filter(s => s.id !== shareId));
     setUnsharingId(null);
   };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 
 export const PasswordSettingsPage = () => {
@@ -18,7 +18,7 @@ export const PasswordSettingsPage = () => {
       setPasswordStatus({ type: 'error', msg: 'Password must be at least 6 characters.' });
       return;
     }
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await turso.auth.updateUser({ password: newPassword });
     if (error) {
       setPasswordStatus({ type: 'error', msg: error.message });
     } else {

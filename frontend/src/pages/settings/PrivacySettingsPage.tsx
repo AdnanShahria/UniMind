@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Shield, CheckCircle, Eye, MessageSquare, Search, Share2 } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
   <button onClick={onChange}
@@ -33,10 +33,10 @@ export const PrivacySettingsPage = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase
+        const { data } = await turso
           .from('user_preferences')
           .select('profile_visibility, show_online_status, allow_dms, search_indexing, data_sharing_research')
           .eq('user_id', user.id)
@@ -54,7 +54,7 @@ export const PrivacySettingsPage = () => {
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
+    await turso.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
     setSaving(false);
     setShowSaved(true);
     setTimeout(() => setShowSaved(false), 2500);

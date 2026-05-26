@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { CommunitiesHeader } from './CommunitiesHeader';
 import { CommunitiesFilter } from './CommunitiesFilter';
 import { CommunitiesGrid } from './CommunitiesGrid';
@@ -13,9 +13,9 @@ export const CommunitiesPage = () => {
 
   useEffect(() => {
     const fetchCommunities = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       
-      const { data } = await supabase
+      const { data } = await turso
         .from('communities')
         .select(`
           *,

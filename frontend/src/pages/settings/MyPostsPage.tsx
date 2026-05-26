@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import {
   FileText, Edit3, Trash2, Eye, Heart, MessageSquare,
@@ -48,10 +48,10 @@ export const MyPostsPage = () => {
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data } = await supabase
+    const { data } = await turso
       .from('posts')
       .select(`
         id, title, content, type, tags, created_at, updated_at, is_pinned, is_archived, view_count
@@ -64,9 +64,9 @@ export const MyPostsPage = () => {
       const postsWithCounts = await Promise.all(
         data.map(async (post) => {
           const [likesRes, commentsRes, sharesRes] = await Promise.all([
-            supabase.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
-            supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
-            supabase.from('post_shares').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+            turso.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+            turso.from('post_comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
+            turso.from('post_shares').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
           ]);
           return {
             ...post,
@@ -94,7 +94,7 @@ export const MyPostsPage = () => {
   const handleSaveEdit = async () => {
     if (!editPost) return;
     setIsSaving(true);
-    const { error } = await supabase.from('posts').update({
+    const { error } = await turso.from('posts').update({
       title: editTitle || null,
       content: editContent,
       tags: editTags ? editTags.split(',').map(t => t.trim()).filter(Boolean) : null,
@@ -109,20 +109,20 @@ export const MyPostsPage = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
-    await supabase.from('posts').delete().eq('id', deleteId);
+    await turso.from('posts').delete().eq('id', deleteId);
     setIsDeleting(false);
     setDeleteId(null);
     fetchPosts();
   };
 
   const handleTogglePin = async (post: Post) => {
-    await supabase.from('posts').update({ is_pinned: !post.is_pinned }).eq('id', post.id);
+    await turso.from('posts').update({ is_pinned: !post.is_pinned }).eq('id', post.id);
     fetchPosts();
     setOpenMenu(null);
   };
 
   const handleToggleArchive = async (post: Post) => {
-    await supabase.from('posts').update({ is_archived: !post.is_archived }).eq('id', post.id);
+    await turso.from('posts').update({ is_archived: !post.is_archived }).eq('id', post.id);
     fetchPosts();
     setOpenMenu(null);
   };

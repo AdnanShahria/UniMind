@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, Trash2, Edit3, Save, Sparkles, Loader2, Clock, FolderOpen, Copy, Check, Globe, Lock, Users, Share2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { toast } from 'react-hot-toast';
 import { NoteType } from './types';
 
@@ -80,7 +80,7 @@ export const NoteDetailModal = ({
   }, [note, isOpen]);
 
   const fetchContent = async (noteId: string | number) => {
-    const { data } = await supabase
+    const { data } = await turso
       .from('notes')
       .select('content, ai_summary')
       .eq('id', noteId)
@@ -95,7 +95,7 @@ export const NoteDetailModal = ({
   const handleSave = async () => {
     if (!note) return;
     setIsSaving(true);
-    const { error } = await supabase.from('notes').update({
+    const { error } = await turso.from('notes').update({
       title: editTitle,
       content: editContent,
     }).eq('id', note.id);
@@ -113,7 +113,7 @@ export const NoteDetailModal = ({
   const handleDelete = async () => {
     if (!note) return;
     setIsDeleting(true);
-    const { error } = await supabase.from('notes').delete().eq('id', note.id);
+    const { error } = await turso.from('notes').delete().eq('id', note.id);
     if (error) {
       toast.error('Failed to delete note');
     } else {
@@ -131,7 +131,7 @@ export const NoteDetailModal = ({
       const summary = await generateSummary(note.title, dbContent);
       setAiSummary(summary);
       // Save summary to DB
-      await supabase.from('notes').update({ ai_summary: summary, is_ai_summarized: true }).eq('id', note.id);
+      await turso.from('notes').update({ ai_summary: summary, is_ai_summarized: true }).eq('id', note.id);
       toast.success('AI Summary generated!');
       onUpdated();
     } catch {
@@ -160,7 +160,7 @@ export const NoteDetailModal = ({
     
     setVisibility(newVis);
     
-    const { error } = await supabase.from('notes').update({
+    const { error } = await turso.from('notes').update({
       visibility: newVis,
       shared_link_token: token,
     }).eq('id', note.id);

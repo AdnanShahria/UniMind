@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Palette, CheckCircle, Monitor } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { useTheme, AppTheme, ScrollbarStyle } from '../../contexts/ThemeContext';
 
 const THEMES = [
@@ -99,10 +99,10 @@ export const AppearanceSettingsPage = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase
+        const { data } = await turso
           .from('user_preferences')
           .select('theme, font_size, accent_color, compact_mode, sidebar_collapsed')
           .eq('user_id', user.id)
@@ -157,7 +157,7 @@ export const AppearanceSettingsPage = () => {
     }
     if (updates.sidebar_collapsed !== undefined) setSidebarCollapsed(updates.sidebar_collapsed);
 
-    await supabase.from('user_preferences').upsert(
+    await turso.from('user_preferences').upsert(
       { user_id: userId, ...updates },
       { onConflict: 'user_id' }
     );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Key, Copy, Trash2 } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { useEffect } from 'react';
 
 export const ApiKeysPage = () => {
@@ -11,10 +11,10 @@ export const ApiKeysPage = () => {
 
   useEffect(() => {
     const fetchKeys = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase.from('api_keys').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+        const { data } = await turso.from('api_keys').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
         if (data) {
           setApiKeys(data);
         }
@@ -28,7 +28,7 @@ export const ApiKeysPage = () => {
     setIsGenerating(true);
     
     const newKeyValue = 'unm_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const { data, error } = await supabase.from('api_keys').insert({
+    const { data, error } = await turso.from('api_keys').insert({
       user_id: userId,
       name: 'New API Key',
       key_value: newKeyValue
@@ -43,7 +43,7 @@ export const ApiKeysPage = () => {
   const deleteApiKey = async (id: string) => {
     if (!confirm('Are you sure you want to delete this API key? Any applications using it will lose access.')) return;
     
-    const { error } = await supabase.from('api_keys').delete().eq('id', id);
+    const { error } = await turso.from('api_keys').delete().eq('id', id);
     if (!error) {
       setApiKeys(apiKeys.filter(k => k.id !== id));
     }

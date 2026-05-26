@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { MessageSquare, Search, Edit3, Trash2, Save, X, AlertTriangle, Calendar } from 'lucide-react';
 
@@ -30,10 +30,10 @@ export const MyCommentsPage = () => {
 
   const fetchComments = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data } = await supabase
+    const { data } = await turso
       .from('post_comments')
       .select(`
         id, content, is_edited, created_at, updated_at, post_id,
@@ -56,7 +56,7 @@ export const MyCommentsPage = () => {
   const handleSaveEdit = async () => {
     if (!editComment || !editContent.trim()) return;
     setIsSaving(true);
-    const { error } = await supabase.from('post_comments')
+    const { error } = await turso.from('post_comments')
       .update({ content: editContent, is_edited: true })
       .eq('id', editComment.id);
     setIsSaving(false);
@@ -69,7 +69,7 @@ export const MyCommentsPage = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
-    await supabase.from('post_comments').delete().eq('id', deleteId);
+    await turso.from('post_comments').delete().eq('id', deleteId);
     setIsDeleting(false);
     setDeleteId(null);
     setComments(prev => prev.filter(c => c.id !== deleteId));

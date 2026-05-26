@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Moon, Volume2, VolumeX } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 interface Prefs {
   push_notifs: boolean;
@@ -43,10 +43,10 @@ export const NotificationsSettingsPage = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase
+        const { data } = await turso
           .from('user_preferences')
           .select('push_notifs, email_notifs, notif_sound, notif_likes, notif_comments, notif_messages, notif_community, quiet_hours_start, quiet_hours_end')
           .eq('user_id', user.id)
@@ -66,7 +66,7 @@ export const NotificationsSettingsPage = () => {
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
+    await turso.from('user_preferences').upsert({ user_id: userId, ...prefs }, { onConflict: 'user_id' });
     setSaving(false);
     setShowSaved(true);
     setTimeout(() => setShowSaved(false), 2500);

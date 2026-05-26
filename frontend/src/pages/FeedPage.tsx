@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { turso } from '../utils/tursoClient';
 
 // Feed Components
 import { PostInput } from '../components/feed/PostInput';
@@ -23,7 +23,7 @@ export const FeedPage = () => {
   useEffect(() => {
     // Get current user session
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       setCurrentUser(user);
     };
     getUser();
@@ -32,7 +32,7 @@ export const FeedPage = () => {
 
   const fetchPosts = async () => {
     // First try with users join
-    let { data, error } = await supabase
+    let { data, error } = await turso
       .from('posts')
       .select('*, users(name, role, avatar_url)')
       .order('created_at', { ascending: false });
@@ -40,7 +40,7 @@ export const FeedPage = () => {
     // Fallback if users relation fails (e.g. schema not fully applied)
     if (error) {
       console.warn("Could not fetch posts with users relation, trying without:", error);
-      const fallback = await supabase
+      const fallback = await turso
         .from('posts')
         .select('*')
         .order('created_at', { ascending: false });

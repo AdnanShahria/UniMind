@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageSquare, Share2, BookmarkPlus, MoreHorizontal, Send, Camera, X, FileText } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { ShareModal } from './ShareModal';
 
 interface PostCardProps {
@@ -37,25 +37,25 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
 
   const fetchInteractions = async () => {
     // Fetch likes
-    const { count: likes } = await supabase.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id);
+    const { count: likes } = await turso.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id);
     setLikesCount(likes || 0);
     
     if (currentUser) {
-      const { data: userLike } = await supabase.from('post_likes').select('*').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle();
+      const { data: userLike } = await turso.from('post_likes').select('*').eq('post_id', post.id).eq('user_id', currentUser.id).maybeSingle();
       setIsLiked(!!userLike);
 
-      const { data: profile } = await supabase.from('users').select('avatar_url').eq('id', currentUser.id).maybeSingle();
+      const { data: profile } = await turso.from('users').select('avatar_url').eq('id', currentUser.id).maybeSingle();
       if (profile) {
         setCurrentUserAvatar(profile.avatar_url);
       }
     }
 
     // Fetch comments
-    const { data: commentsData } = await supabase.from('post_comments').select('*, users(name, avatar_url)').eq('post_id', post.id).order('created_at', { ascending: true });
+    const { data: commentsData } = await turso.from('post_comments').select('*, users(name, avatar_url)').eq('post_id', post.id).order('created_at', { ascending: true });
     setComments(commentsData || []);
 
     // Fetch shares
-    const { count: shares } = await supabase.from('post_shares').select('*', { count: 'exact', head: true }).eq('post_id', post.id);
+    const { count: shares } = await turso.from('post_shares').select('*', { count: 'exact', head: true }).eq('post_id', post.id);
     setSharesCount(shares || 0);
   };
 
@@ -65,11 +65,11 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
     if (isLiked) {
       setIsLiked(false);
       setLikesCount(prev => prev - 1);
-      await supabase.from('post_likes').delete().eq('post_id', post.id).eq('user_id', currentUser.id);
+      await turso.from('post_likes').delete().eq('post_id', post.id).eq('user_id', currentUser.id);
     } else {
       setIsLiked(true);
       setLikesCount(prev => prev + 1);
-      await supabase.from('post_likes').insert([{ post_id: post.id, user_id: currentUser.id }]);
+      await turso.from('post_likes').insert([{ post_id: post.id, user_id: currentUser.id }]);
     }
   };
 
@@ -93,10 +93,10 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
         const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
         const filePath = `comments/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, commentPhoto);
+        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, commentPhoto);
 
         if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
           imageUrl = publicUrl;
         } else {
           // Fallback to base64
@@ -111,7 +111,7 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
       }
     }
 
-    const { data, error } = await supabase.from('post_comments').insert([
+    const { data, error } = await turso.from('post_comments').insert([
       { 
         post_id: post.id, 
         author_id: currentUser.id, 
@@ -137,7 +137,7 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
 
   const handleShareSubmit = async (content: string) => {
     // 1. Add to post_shares for the counter
-    const { error } = await supabase.from('post_shares').insert([{ post_id: post.id, user_id: currentUser.id }]);
+    const { error } = await turso.from('post_shares').insert([{ post_id: post.id, user_id: currentUser.id }]);
     
     if (!error) {
       setSharesCount(prev => prev + 1);
@@ -147,7 +147,7 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
         ? `Shared a post: "${post.content?.substring(0, 50)}..."\n\nThoughts: ${content.trim()}`
         : `Shared a post: "${post.content?.substring(0, 100)}..."`;
 
-      const { error: postError } = await supabase.from('posts').insert([{
+      const { error: postError } = await turso.from('posts').insert([{
         author_id: currentUser.id,
         title: `Shared: ${post.title || 'A post from ' + (post.users?.name || 'Unknown Scholar')}`,
         content: shareContent,

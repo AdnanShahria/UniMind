@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { toast } from 'react-hot-toast';
 
 import { FolderType, NoteType } from './types';
@@ -22,20 +22,20 @@ export const NotesPage = () => {
 
   const fetchNotes = useCallback(async () => {
     setIsLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (!user) {
       setIsLoading(false);
       return;
     }
 
     // Fetch folders
-    const { data: folderData } = await supabase
+    const { data: folderData } = await turso
       .from('folders')
       .select('*')
       .eq('user_id', user.id);
 
     // Fetch notes with folder name join
-    const { data: notesData } = await supabase
+    const { data: notesData } = await turso
       .from('notes')
       .select('*, folders(name)')
       .eq('author_id', user.id)
@@ -44,7 +44,7 @@ export const NotesPage = () => {
     if (folderData && folderData.length > 0) {
       // Build folder counts
       const countMap: Record<string, number> = {};
-      notesData?.forEach(n => {
+      notesData?.forEach((n: any) => {
         if (n.folders?.name) countMap[n.folders.name] = (countMap[n.folders.name] || 0) + 1;
       });
 
@@ -57,7 +57,7 @@ export const NotesPage = () => {
         { color: 'from-indigo-500/20 to-violet-500/20', border: 'border-indigo-500/15' },
       ];
 
-      setDbFolders(folderData.map((f, idx) => ({
+      setDbFolders(folderData.map((f: any, idx: number) => ({
         name: f.name,
         count: countMap[f.name] || 0,
         color: f.color || FOLDER_GRADIENTS[idx % FOLDER_GRADIENTS.length].color,
@@ -69,7 +69,7 @@ export const NotesPage = () => {
 
     if (notesData && notesData.length > 0) {
       const NOTE_COLORS = ['text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-amber-400', 'text-rose-400', 'text-cyan-400'];
-      setDbNotes(notesData.map((n, idx) => {
+      setDbNotes(notesData.map((n: any, idx: number) => {
         const diff = Date.now() - new Date(n.created_at).getTime();
         const days = Math.floor(diff / 86400000);
         const hours = Math.floor(diff / 3600000);
@@ -135,8 +135,8 @@ export const NotesPage = () => {
     setDbNotes(prev => prev.map(n => n.id === noteId ? { ...n, starred: newStarred } : n));
     toast.success(newStarred ? 'Added to favorites ⭐' : 'Removed from favorites');
 
-    // Sync to Supabase
-    const { error } = await supabase.from('notes').update({ is_starred: newStarred }).eq('id', noteId);
+    // Sync to database
+    const { error } = await turso.from('notes').update({ is_starred: newStarred }).eq('id', noteId);
     if (error) {
       // Revert on failure
       setDbNotes(prev => prev.map(n => n.id === noteId ? { ...n, starred: !newStarred } : n));

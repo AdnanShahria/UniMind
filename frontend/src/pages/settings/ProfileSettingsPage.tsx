@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Save, Plus, X, User as UserIcon, Link, Twitter, Github, Linkedin, BookOpen, Camera } from 'lucide-react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 
 const TagInput = ({
@@ -58,10 +58,10 @@ export const ProfileSettingsPage = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (user) {
         setCurrentUser(user);
-        const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
+        const { data } = await turso.from('users').select('*').eq('id', user.id).single();
         if (data) {
           setName(data.name || user.user_metadata?.name || '');
           setAvatarUrl(data.avatar_url || '');
@@ -90,10 +90,10 @@ export const ProfileSettingsPage = () => {
       const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
       const filePath = `public/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+      const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, file);
 
       if (!uploadError) {
-        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
         setAvatarUrl(publicUrl);
         setStatus(null);
       } else {
@@ -118,7 +118,7 @@ export const ProfileSettingsPage = () => {
     setIsSaving(true);
     setStatus(null);
 
-    const { error } = await supabase.from('users').update({
+    const { error } = await turso.from('users').update({
       name, 
       avatar_url: avatarUrl,
       bio,
@@ -130,7 +130,7 @@ export const ProfileSettingsPage = () => {
       social_links: socialLinks,
     }).eq('id', currentUser.id);
 
-    await supabase.auth.updateUser({ data: { name } });
+    await turso.auth.updateUser({ data: { name } });
 
     setIsSaving(false);
     if (!error) {

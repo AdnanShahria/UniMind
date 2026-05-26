@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Image as ImageIcon, FileText, Sparkles, Hash } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -86,12 +86,12 @@ export const CreatePostModal = ({
         const fileName = `${currentUser.id}-${Date.now()}-${Math.random()}.${fileExt}`;
         const filePath = `posts/photos/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, selectedPhoto);
+        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, selectedPhoto);
         if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
           mediaUrls.push(publicUrl);
         } else {
-          console.warn("Supabase storage upload failed for photo, trying base64 fallback:", uploadError);
+          console.warn("Storage service upload failed for photo, trying base64 fallback:", uploadError);
           const base64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
@@ -111,12 +111,12 @@ export const CreatePostModal = ({
         const fileName = `${currentUser.id}-${Date.now()}-${Math.random()}.${fileExt}`;
         const filePath = `posts/notes/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, selectedNote);
+        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, selectedNote);
         if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
           mediaUrls.push(publicUrl);
         } else {
-          console.warn("Supabase storage upload failed for document, trying base64 fallback:", uploadError);
+          console.warn("Storage service upload failed for document, trying base64 fallback:", uploadError);
           const base64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
@@ -129,7 +129,7 @@ export const CreatePostModal = ({
       }
     }
 
-    const { error } = await supabase.from('posts').insert([
+    const { error } = await turso.from('posts').insert([
       {
         author_id: currentUser.id,
         title: title.trim() || null,

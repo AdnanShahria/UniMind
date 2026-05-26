@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Layers, MoreVertical, Pencil, Trash2, Clock, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 export const WeeklyGoals = ({ 
   goals, 
@@ -80,7 +80,7 @@ export const WeeklyGoals = ({
     });
 
     for (const wg of completedGoals) {
-      await supabase.from('weekly_goals').delete().eq('id', wg.id);
+      await turso.from('weekly_goals').delete().eq('id', wg.id);
     }
     window.location.reload(); // Refresh to sync
   };

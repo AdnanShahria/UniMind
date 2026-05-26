@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { HardDrive, FileText, Image, BookOpen, Trash2, RefreshCw } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { motion } from 'framer-motion';
-import { supabase } from '../../utils/supabaseClient';
+import { turso } from '../../utils/tursoClient';
 
 interface StorageBreakdown {
   posts: number;
@@ -50,12 +50,12 @@ export const StorageUsagePage = () => {
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await turso.auth.getUser();
       if (!user) { setLoading(false); return; }
       const [postsRes, notesRes, commentsRes] = await Promise.all([
-        supabase.from('posts').select('*', { count: 'exact', head: true }).eq('author_id', user.id),
-        supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('post_comments').select('*', { count: 'exact', head: true }).eq('author_id', user.id),
+        turso.from('posts').select('*', { count: 'exact', head: true }).eq('author_id', user.id),
+        turso.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        turso.from('post_comments').select('*', { count: 'exact', head: true }).eq('author_id', user.id),
       ]);
       setCounts({ posts: postsRes.count || 0, notes: notesRes.count || 0, comments: commentsRes.count || 0 });
       setLoading(false);
@@ -65,11 +65,11 @@ export const StorageUsagePage = () => {
 
   const handleClean = async (type: 'posts' | 'notes' | 'comments') => {
     setCleaning(type);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await turso.auth.getUser();
     if (user) {
-      if (type === 'posts') await supabase.from('posts').delete().eq('author_id', user.id);
-      if (type === 'notes') await supabase.from('notes').delete().eq('user_id', user.id);
-      if (type === 'comments') await supabase.from('post_comments').delete().eq('author_id', user.id);
+      if (type === 'posts') await turso.from('posts').delete().eq('author_id', user.id);
+      if (type === 'notes') await turso.from('notes').delete().eq('user_id', user.id);
+      if (type === 'comments') await turso.from('post_comments').delete().eq('author_id', user.id);
       setCounts(prev => ({ ...prev, [type]: 0 }));
     }
     setCleaning(null);
