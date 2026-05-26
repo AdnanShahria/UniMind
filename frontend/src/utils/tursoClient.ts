@@ -1,5 +1,5 @@
-// Unified Database Client Proxy that routes directly to Cloudflare Worker + Turso Edge DB
 const API_URL = 'http://localhost:8787';
+let cachedMetadata: any = null;
 
 const getStoredUser = () => {
   const token = localStorage.getItem('unimind_token');
@@ -264,6 +264,7 @@ export const turso: any = {
               const json = await res.json();
               result.data = json.data || [];
             } else if (builder._action === 'insert') {
+              cachedMetadata = null; // Invalidate cache on insert
               const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
               const res = await fetch(`${API_URL}/api/metadata-requests`, {
                 method: 'POST',
@@ -273,6 +274,7 @@ export const turso: any = {
               const json = await res.json();
               result.data = json.data;
             } else if (builder._action === 'update') {
+              cachedMetadata = null; // Invalidate cache on update
               const id = builder._eq?.value;
               const payload = builder._data;
               const res = await fetch(`${API_URL}/api/metadata-requests?id=${id}`, {
@@ -282,6 +284,22 @@ export const turso: any = {
               });
               const json = await res.json();
               result.data = json.data;
+            }
+          } else if (table === 'metadata_approved') {
+            if (builder._action === 'select') {
+              if (cachedMetadata) {
+                result.data = cachedMetadata;
+              } else {
+                const res = await fetch(`${API_URL}/api/metadata/approved`, { headers });
+                const json = await res.json();
+                cachedMetadata = {
+                  institutions: json.institutions || [],
+                  majors: json.majors || [],
+                  sessions: json.sessions || [],
+                  roles: json.roles || []
+                };
+                result.data = cachedMetadata;
+              }
             }
           } else {
             if (table === 'users' && builder._single) {

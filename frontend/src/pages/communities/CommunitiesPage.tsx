@@ -26,7 +26,7 @@ export const CommunitiesPage = () => {
         .order('created_at', { ascending: false });
 
       if (data && data.length > 0) {
-        setDbCommunities(data.map((c, i) => {
+        setDbCommunities(data.map((c: any, i: number) => {
           const colors = [
             { color: 'from-blue-500/20 to-cyan-500/20', border: 'border-blue-500/15', icon: '⚛️' },
             { color: 'from-purple-500/20 to-violet-500/20', border: 'border-purple-500/15', icon: '🤖' },

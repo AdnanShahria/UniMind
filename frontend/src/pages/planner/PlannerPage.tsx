@@ -42,7 +42,7 @@ export const PlannerPage = () => {
       // Fetch tasks
       const { data: tasks } = await turso.from('tasks').select('*').eq('user_id', user.id).order('due_date', { ascending: true });
       if (tasks) {
-        setDbTasks(tasks.map(t => {
+        setDbTasks(tasks.map((t: any) => {
            const date = new Date(t.due_date);
            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
            return {

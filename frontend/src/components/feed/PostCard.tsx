@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { turso } from '../../utils/tursoClient';
 import { ShareModal } from './ShareModal';
+import toast from 'react-hot-toast';
 
 interface PostCardProps {
   post: any;
@@ -155,11 +156,13 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
       }]);
 
       if (!postError) {
-        alert('Post successfully shared to your feed!');
+        toast.success('Post successfully shared to your feed!');
         // Refresh to show the new post in the feed
-        window.location.reload(); 
+        setTimeout(() => {
+          window.location.reload(); 
+        }, 500);
       } else {
-        alert('Error sharing to feed.');
+        toast.error('Error sharing to feed.');
       }
     }
   };

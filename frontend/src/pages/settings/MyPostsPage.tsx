@@ -62,7 +62,7 @@ export const MyPostsPage = () => {
     if (data) {
       // Fetch counts in parallel
       const postsWithCounts = await Promise.all(
-        data.map(async (post) => {
+        data.map(async (post: any) => {
           const [likesRes, commentsRes, sharesRes] = await Promise.all([
             turso.from('post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
             turso.from('post_comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id),

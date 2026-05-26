@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Image as ImageIcon, FileText, Sparkles, Hash } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { turso } from '../../utils/tursoClient';
+import toast from 'react-hot-toast';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -153,7 +154,7 @@ export const CreatePostModal = ({
       onClose();
     } else {
       console.error("Error creating post:", error);
-      alert("Error creating post: " + (error?.message || JSON.stringify(error)));
+      toast.error("Error creating post: " + (error?.message || JSON.stringify(error)));
     }
   };
 

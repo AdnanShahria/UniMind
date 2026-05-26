@@ -34,7 +34,7 @@ export const MessagesPage = () => {
           .order('updated_at', { ascending: false });
 
         if (convData && convData.length > 0) {
-          setDbConversations(convData.map(c => ({
+          setDbConversations(convData.map((c: any) => ({
             id: c.id,
             name: c.name || 'Direct Message',
             avatar: c.name ? c.name.substring(0, 2).toUpperCase() : 'DM',
@@ -64,7 +64,7 @@ export const MessagesPage = () => {
           .order('created_at', { ascending: true });
         
         if (data) {
-          setDbMessages(data.map(m => ({
+          setDbMessages(data.map((m: any) => ({
             id: m.id,
             sender: m.users?.name || 'Unknown',
             content: m.content,

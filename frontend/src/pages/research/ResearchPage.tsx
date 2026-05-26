@@ -25,7 +25,7 @@ export const ResearchPage = () => {
           .order('created_at', { ascending: false });
 
         if (userPapers) {
-          setDbPapers(userPapers.map(p => ({
+          setDbPapers(userPapers.map((p: any) => ({
             id: p.id,
             title: p.title,
             authors: p.authors || 'Unknown',
@@ -45,7 +45,7 @@ export const ResearchPage = () => {
           .order('created_at', { ascending: true });
         
         if (collaborators) {
-          setDbCollaborators(collaborators.map(c => ({
+          setDbCollaborators(collaborators.map((c: any) => ({
              id: c.id,
              name: c.name,
              role: c.role,

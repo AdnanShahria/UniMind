@@ -504,6 +504,72 @@ export default {
       }
     }
 
+    // API: METADATA APPROVED ENDPOINT
+    if (url.pathname === "/api/metadata/approved" && request.method === "GET") {
+      try {
+        let rows: any[] = [];
+        if (db) {
+          const res = await db.execute("SELECT * FROM metadata_requests WHERE status IN ('approved', 'pending')");
+          rows = res.rows;
+        } else {
+          rows = Array.from(mockMetadataRequests.values()).filter(r => r.status === 'approved' || r.status === 'pending');
+        }
+
+        const institutionsMap = new Map<string, { value: string; isCustom: boolean }>();
+        const majorsMap = new Map<string, { value: string; isCustom: boolean }>();
+        const sessionsMap = new Map<string, { value: string; isCustom: boolean }>();
+        const rolesMap = new Map<string, { value: string; isCustom: boolean }>();
+
+        for (const row of rows) {
+          const val = row.new_value;
+          const cleanVal = val.includes(' | University: ') ? val.split(' | University: ')[0] : val;
+          const isCustom = row.requester_email !== 'system@unimind.edu';
+
+          const item = { value: cleanVal, isCustom };
+
+          if (row.request_type === 'institution') {
+            if (!institutionsMap.has(cleanVal) || !isCustom) {
+              institutionsMap.set(cleanVal, item);
+            }
+          } else if (row.request_type === 'major') {
+            if (!majorsMap.has(cleanVal) || !isCustom) {
+              majorsMap.set(cleanVal, item);
+            }
+          } else if (row.request_type === 'session') {
+            if (!sessionsMap.has(cleanVal) || !isCustom) {
+              sessionsMap.set(cleanVal, item);
+            }
+          } else if (row.request_type === 'role') {
+            if (!rolesMap.has(cleanVal) || !isCustom) {
+              rolesMap.set(cleanVal, item);
+            }
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            institutions: Array.from(institutionsMap.values()),
+            majors: Array.from(majorsMap.values()),
+            sessions: Array.from(sessionsMap.values()),
+            roles: Array.from(rolesMap.values())
+          }),
+          {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            }
+          }
+        );
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
+
     // API: METADATA REQUESTS CRUD ENDPOINTS
     if (url.pathname.startsWith("/api/metadata-requests")) {
       try {

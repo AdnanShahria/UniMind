@@ -3,6 +3,7 @@ import { X, Smile, MessageCircle, Send, Link as LinkIcon, Users, UserPlus, Globe
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { turso } from '../../utils/tursoClient';
+import toast from 'react-hot-toast';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ export const ShareModal = ({ isOpen, onClose, post, currentUser, onShareContent 
 
       if (otherMembers) {
         // Deduplicate by user_id
-        const uniqueUsers = Array.from(new Map(otherMembers.map(m => [m.user_id, m.users])).values()).filter(Boolean);
+        const uniqueUsers = Array.from(new Map(otherMembers.map((m: any) => [m.user_id, m.users])).values()).filter(Boolean);
         
         // Map to friend objects
         const friendsList = uniqueUsers.map((u: any) => ({
@@ -74,16 +75,16 @@ export const ShareModal = ({ isOpen, onClose, post, currentUser, onShareContent 
 
   const handleFriendShare = (friendName: string) => {
     // In a real app, this would send a message via the messaging system
-    alert(`Post shared with ${friendName} via Messages!`);
+    toast.success(`Post shared with ${friendName} via Messages!`);
     onClose();
   };
 
   const handlePlatformShare = (platform: string) => {
     if (platform === 'Copy link') {
       navigator.clipboard.writeText(`${window.location.origin}/app/feed`); // Simulate post link
-      alert('Link copied to clipboard!');
+      toast.success('Link copied to clipboard!');
     } else {
-      alert(`Shared to ${platform}!`);
+      toast.success(`Shared to ${platform}!`);
     }
     onClose();
   };

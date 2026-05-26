@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Key, Copy, Trash2 } from 'lucide-react';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 import { turso } from '../../utils/tursoClient';
-import { useEffect } from 'react';
+import { ConfirmModal } from '../../components/ConfirmModal';
+import toast from 'react-hot-toast';
 
 export const ApiKeysPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -23,6 +24,8 @@ export const ApiKeysPage = () => {
     fetchKeys();
   }, []);
 
+  const [deleteKeyId, setDeleteKeyId] = useState<string | null>(null);
+
   const generateApiKey = async () => {
     if (!userId || isGenerating) return;
     setIsGenerating(true);
@@ -36,22 +39,32 @@ export const ApiKeysPage = () => {
 
     if (data && !error) {
       setApiKeys([data, ...apiKeys]);
+      toast.success('API Key successfully generated!');
+    } else {
+      toast.error('Failed to generate API Key');
     }
     setIsGenerating(false);
   };
 
   const deleteApiKey = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this API key? Any applications using it will lose access.')) return;
-    
-    const { error } = await turso.from('api_keys').delete().eq('id', id);
+    setDeleteKeyId(id);
+  };
+
+  const confirmDeleteApiKey = async () => {
+    if (!deleteKeyId) return;
+    const { error } = await turso.from('api_keys').delete().eq('id', deleteKeyId);
     if (!error) {
-      setApiKeys(apiKeys.filter(k => k.id !== id));
+      setApiKeys(apiKeys.filter(k => k.id !== deleteKeyId));
+      toast.success('API Key successfully deleted!');
+    } else {
+      toast.error('Failed to delete API Key');
     }
+    setDeleteKeyId(null);
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard');
+    toast.success('Copied to clipboard!');
   };
 
   return (
@@ -96,6 +109,16 @@ export const ApiKeysPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={deleteKeyId !== null}
+        title="Delete API Key"
+        message="Are you sure you want to delete this API key? Any applications using it will lose access."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteApiKey}
+        onCancel={() => setDeleteKeyId(null)}
+        variant="danger"
+      />
     </SettingsPageLayout>
   );
 };

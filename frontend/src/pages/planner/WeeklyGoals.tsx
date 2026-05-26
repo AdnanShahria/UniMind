@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Target, Layers, MoreVertical, Pencil, Trash2, Clock, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
 import { turso } from '../../utils/tursoClient';
+import { ConfirmModal } from '../../components/ConfirmModal';
+import toast from 'react-hot-toast';
 
 export const WeeklyGoals = ({ 
   goals, 
@@ -23,6 +25,7 @@ export const WeeklyGoals = ({
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [viewSection, setViewSection] = useState<'all' | 'active-week'>('all');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Calculate Monday of the selected week
   const getStartOfWeek = (d: Date) => {
@@ -69,9 +72,11 @@ export const WeeklyGoals = ({
       .reduce((sum, t) => sum + (parseFloat(t.estimated_hours) || 0), 0);
   };
 
-  const handleClearCompleted = async () => {
-    const confirm = window.confirm("Are you sure you want to clear all completed goals?");
-    if (!confirm) return;
+  const handleClearCompleted = () => {
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearCompleted = async () => {
     const completedGoals = goals.filter(wg => {
       const progressPct = wg.target_segments > 0 
         ? Math.round((wg.completed_segments / wg.target_segments) * 100) 
@@ -79,10 +84,19 @@ export const WeeklyGoals = ({
       return progressPct >= 100;
     });
 
-    for (const wg of completedGoals) {
-      await turso.from('weekly_goals').delete().eq('id', wg.id);
+    try {
+      for (const wg of completedGoals) {
+        await turso.from('weekly_goals').delete().eq('id', wg.id);
+      }
+      toast.success('Completed goals successfully cleared!');
+      setTimeout(() => {
+        window.location.reload(); // Refresh to sync
+      }, 500);
+    } catch (err) {
+      toast.error('Failed to clear completed goals');
+    } finally {
+      setShowClearConfirm(false);
     }
-    window.location.reload(); // Refresh to sync
   };
 
   // Filter goals depending on view section selected
@@ -285,6 +299,16 @@ export const WeeklyGoals = ({
           })
         )}
       </div>
+      <ConfirmModal
+        isOpen={showClearConfirm}
+        title="Clear Completed Goals"
+        message="Are you sure you want to clear all completed goals? This action cannot be undone."
+        confirmText="Clear Goals"
+        cancelText="Cancel"
+        onConfirm={confirmClearCompleted}
+        onCancel={() => setShowClearConfirm(false)}
+        variant="danger"
+      />
     </div>
   );
 };

@@ -77,7 +77,7 @@ export const DashboardPage = () => {
         .order('due_date', { ascending: true })
         .limit(4);
       if (tasks) {
-        setUpcomingTasks(tasks.map(t => {
+        setUpcomingTasks(tasks.map((t: any) => {
            const d = new Date(t.due_date);
            return {
              id: t.id,

@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { turso } from '../utils/tursoClient';
 import toast from 'react-hot-toast';
+import { CustomSelect, Option } from './CustomSelect';
+
+// Metadata constants moved dynamically to Turso Edge Database
 
 interface AuthPageProps {
   initialTab?: 'login' | 'register';
@@ -30,6 +33,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     name: '',
     email: '',
     institution: '',
+    abbreviation: '',
     district: '',
     country: '',
     isUnlistedInstitution: false,
@@ -55,10 +59,98 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Dynamic Custom State Lists
-  const [customUniversities, setCustomUniversities] = useState<string[]>([]);
-  const [customMajors, setCustomMajors] = useState<string[]>([]);
-  const [customSessions, setCustomSessions] = useState<string[]>([]);
-  const [customRoles, setCustomRoles] = useState<string[]>([]);
+  const [customUniversities, setCustomUniversities] = useState<{ value: string; isCustom: boolean }[]>([]);
+  const [customMajors, setCustomMajors] = useState<{ value: string; isCustom: boolean }[]>([]);
+  const [customSessions, setCustomSessions] = useState<{ value: string; isCustom: boolean }[]>([]);
+  const [customRoles, setCustomRoles] = useState<{ value: string; isCustom: boolean }[]>([]);
+
+  // Custom Dropdown Option Lists
+  const institutionOptions: Option[] = (customUniversities
+    .map(item => {
+      const uni = item.value;
+      const hasLocation = uni.includes(' | Location: ');
+      const labelName = hasLocation ? uni.split(' | Location: ')[0] : uni;
+      const subtitleVal = hasLocation ? uni.split(' | Location: ')[1] : undefined;
+      return { 
+        value: uni, 
+        label: labelName, 
+        subtitle: subtitleVal,
+        isCustom: item.isCustom
+      };
+    }) as Option[])
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .concat({ value: "unlisted", label: "Can't find your institution? Add new", isAction: true });
+
+  const majorOptions: Option[] = (customMajors
+    .map(item => ({ 
+      value: item.value, 
+      label: item.value, 
+      isCustom: item.isCustom 
+    })) as Option[])
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .concat({ value: "unlisted", label: "Can't find your Field/Major? Add custom", isAction: true });
+
+  const sessionOptions: Option[] = (customSessions
+    .map(item => ({ 
+      value: item.value, 
+      label: item.value, 
+      isCustom: item.isCustom 
+    })) as Option[])
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .concat({ value: "unlisted", label: "Can't find your Session? Add custom", isAction: true });
+
+  const roleOptions: Option[] = (customRoles
+    .map(item => {
+      const rl = item.value;
+      return { 
+        value: rl, 
+        label: rl === "Undergraduate" ? "Undergraduate Student" :
+               rl === "Graduate / PhD" ? "Graduate / PhD Candidate" :
+               rl === "Researcher" ? "Academic Researcher" :
+               rl === "Professor" ? "Professor / Mentor" :
+               rl === "Other" ? "Other Academic Expert" : rl, 
+        isCustom: item.isCustom 
+      };
+    }) as Option[])
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .concat({ value: "unlisted", label: "Can't find your Role? Add custom", isAction: true });
+
+  // Custom Dropdown Selection Handlers
+  const handleInstitutionSelect = (value: string) => {
+    if (value === "unlisted") {
+      setRegForm(prev => ({ ...prev, isUnlistedInstitution: true, institution: '', district: '', country: '' }));
+    } else {
+      setRegForm(prev => ({ ...prev, isUnlistedInstitution: false, institution: value, district: '', country: '' }));
+    }
+    if (errors.institution) setErrors(prev => { const copy = { ...prev }; delete copy.institution; return copy; });
+  };
+
+  const handleMajorSelect = (value: string) => {
+    if (value === "unlisted") {
+      setRegForm(prev => ({ ...prev, isCustomMajor: true, major: '' }));
+    } else {
+      setRegForm(prev => ({ ...prev, isCustomMajor: false, major: value }));
+    }
+    if (errors.major) setErrors(prev => { const copy = { ...prev }; delete copy.major; return copy; });
+  };
+
+  const handleSessionSelect = (value: string) => {
+    if (value === "unlisted") {
+      setRegForm(prev => ({ ...prev, isCustomSession: true, session: '' }));
+    } else {
+      setRegForm(prev => ({ ...prev, isCustomSession: false, session: value }));
+    }
+    if (errors.session) setErrors(prev => { const copy = { ...prev }; delete copy.session; return copy; });
+  };
+
+  const handleRoleSelect = (value: string) => {
+    if (value === "unlisted") {
+      setRegForm(prev => ({ ...prev, isCustomRole: true, role: '' }));
+    } else {
+      setRegForm(prev => ({ ...prev, isCustomRole: false, role: value }));
+    }
+    if (errors.role) setErrors(prev => { const copy = { ...prev }; delete copy.role; return copy; });
+  };
 
   // Saving animation states
   const [isSavingUni, setIsSavingUni] = useState(false);
@@ -87,6 +179,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    // Hide scrollbar globally when onboarding page is mounted
+    document.documentElement.classList.add('scrollbar-hidden');
+
+    const fetchApprovedMetadata = async () => {
+      try {
+        const { data, error } = await turso.from('metadata_approved').select();
+        if (error) {
+          console.error("Failed to fetch custom metadata:", error);
+          return;
+        }
+        if (data) {
+          setCustomUniversities(data.institutions || []);
+          setCustomMajors(data.majors || []);
+          setCustomSessions(data.sessions || []);
+          setCustomRoles(data.roles || []);
+        }
+      } catch (err) {
+        console.error("Error loading approved metadata:", err);
+      }
+    };
+    fetchApprovedMetadata();
+
+    return () => {
+      // Restore scrollbar when leaving onboarding
+      document.documentElement.classList.remove('scrollbar-hidden');
+    };
+  }, []);
 
   useEffect(() => {
     let interval: any;
@@ -172,14 +293,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   const saveCustomInstitution = async () => {
     const uni = regForm.institution.trim();
+    const abbrev = regForm.abbreviation.trim();
     if (!uni) {
       setErrors(prev => ({ ...prev, institution: 'Institution name cannot be empty' }));
       return;
     }
-    if (regForm.isUnlistedInstitution && (!regForm.district.trim() || !regForm.country.trim())) {
-      setErrors(prev => ({ ...prev, institution: 'District and Country are required' }));
+    if (regForm.isUnlistedInstitution && (!regForm.district.trim() || !regForm.country.trim() || !abbrev)) {
+      setErrors(prev => ({ ...prev, institution: 'Abbreviation, District, and Country are required' }));
       return;
     }
+
+    const finalVal = `${uni} (${abbrev.toUpperCase()}) | Location: ${regForm.district.trim()}, ${regForm.country.trim()}`;
 
     setIsSavingUni(true);
     try {
@@ -190,7 +314,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           request_type: 'institution',
           action_type: 'add',
           old_value: null,
-          new_value: uni,
+          new_value: finalVal,
           status: 'pending'
         }
       ]);
@@ -200,11 +324,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         return;
       }
 
-      setCustomUniversities(prev => [...prev, uni]);
+      setCustomUniversities(prev => [...prev, { value: finalVal, isCustom: true }]);
       setRegForm(prev => ({
         ...prev,
         isUnlistedInstitution: false,
-        institution: uni
+        institution: finalVal
       }));
       
       setErrors(prev => {
@@ -250,7 +374,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         return;
       }
 
-      setCustomMajors(prev => [...prev, major]);
+      setCustomMajors(prev => [...prev, { value: major, isCustom: true }]);
       setRegForm(prev => ({
         ...prev,
         isCustomMajor: false,
@@ -300,7 +424,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         return;
       }
 
-      setCustomSessions(prev => [...prev, session]);
+      setCustomSessions(prev => [...prev, { value: session, isCustom: true }]);
       setRegForm(prev => ({
         ...prev,
         isCustomSession: false,
@@ -344,7 +468,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         return;
       }
 
-      setCustomRoles(prev => [...prev, role]);
+      setCustomRoles(prev => [...prev, { value: role, isCustom: true }]);
       setRegForm(prev => ({
         ...prev,
         isCustomRole: false,
@@ -380,8 +504,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       tempErrors.email = 'Please provide a valid email';
     }
     if (!regForm.institution.trim()) tempErrors.institution = 'Institution is required';
-    if (regForm.isUnlistedInstitution && (!regForm.district.trim() || !regForm.country.trim())) {
-      tempErrors.institution = 'District and Country are required for unlisted institutions';
+    if (regForm.isUnlistedInstitution && (!regForm.district.trim() || !regForm.country.trim() || !regForm.abbreviation.trim())) {
+      tempErrors.institution = 'Abbreviation, District, and Country are required for unlisted institutions';
     }
     if (!regForm.major.trim()) tempErrors.major = 'Field of study is required';
     if (regForm.password.length < 6) tempErrors.password = 'Password must be at least 6 characters';
@@ -838,25 +962,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <div className="group flex flex-col">
                         <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">University / Institution</label>
                         {!regForm.isUnlistedInstitution ? (
-                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
-                            <select
-                              name="institutionSelect"
-                              onChange={handleRegChange}
-                              value={regForm.institution || ""}
-                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
-                            >
-                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Institution</option>
-                              {customUniversities.map((uni, idx) => (
-                                <option key={`custom-uni-${idx}`} value={uni} className="bg-[#0b1121] text-emerald-400 font-medium">{uni} (Custom)</option>
-                              ))}
-                              <option value="Bangladesh University of Engineering and Technology" className="bg-[#0b1121] text-slate-200">Bangladesh University of Engineering and Technology</option>
-                              <option value="University of Dhaka" className="bg-[#0b1121] text-slate-200">University of Dhaka</option>
-                              <option value="Shahjalal University of Science & Technology" className="bg-[#0b1121] text-slate-200">Shahjalal University of Science & Technology</option>
-                              <option value="Stanford University" className="bg-[#0b1121] text-slate-200">Stanford University</option>
-                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your institution? Add new</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
+                          <div className="relative">
+                            <CustomSelect
+                              value={regForm.institution}
+                              onChange={handleInstitutionSelect}
+                              options={institutionOptions}
+                              placeholder="Select Institution"
+                            />
+                            {regForm.institution && (
+                              <div className="flex justify-end mt-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const rawVal = regForm.institution;
+                                    const cleanName = rawVal.includes(' | Location: ') ? rawVal.split(' | Location: ')[0] : rawVal;
+                                    setRequestEmail(regForm.email || '');
+                                    setRequestType('institution');
+                                    setActionType('rename');
+                                    setOldValue(cleanName);
+                                    setNewValue('');
+                                    setShowRequestModal(true);
+                                    setRequestStatus('idle');
+                                    setRequestError('');
+                                  }}
+                                  className="text-[10px] text-slate-400 hover:text-primary-glow hover:underline transition-colors font-poppins cursor-pointer bg-transparent border-none outline-none"
+                                >
+                                  Report spelling typo in this name
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <motion.div 
@@ -877,24 +1011,34 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                               />
                             </div>
                             <div className="flex gap-2">
-                              <div className="w-1/2 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
+                              <div className="w-1/3 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
+                                <input 
+                                  type="text" 
+                                  name="abbreviation" 
+                                  value={regForm.abbreviation} 
+                                  onChange={handleRegChange} 
+                                  placeholder="Abbrev (e.g. GAU)" 
+                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-3 font-poppins" 
+                                />
+                              </div>
+                              <div className="w-1/3 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
                                 <input 
                                   type="text" 
                                   name="district" 
                                   value={regForm.district} 
                                   onChange={handleRegChange} 
                                   placeholder="District" 
-                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins" 
+                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-3 font-poppins" 
                                 />
                               </div>
-                              <div className="w-1/2 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
+                              <div className="w-1/3 relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 focus-within:border-primary-glow/30 overflow-hidden">
                                 <input 
                                   type="text" 
                                   name="country" 
                                   value={regForm.country} 
                                   onChange={handleRegChange} 
                                   placeholder="Country" 
-                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-4 font-poppins" 
+                                  className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-600 outline-none px-3 font-poppins" 
                                 />
                               </div>
                             </div>
@@ -924,35 +1068,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       </div>
 
                       {/* Major */}
-                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                      <div className="group flex flex-col transition-all duration-500">
                         <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Field of Study / Major</label>
                         {!regForm.isCustomMajor ? (
-                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
-                            <select
-                              name="majorSelect"
-                              onChange={handleRegChange}
-                              value={regForm.major || ""}
-                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
-                            >
-                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Field / Major</option>
-                              {customMajors.map((mjr, idx) => (
-                                <option key={`custom-mjr-${idx}`} value={mjr} className="bg-[#0b1121] text-emerald-400 font-medium">{mjr} (Custom)</option>
-                              ))}
-                              <option value="Computer Science & Engineering" className="bg-[#0b1121] text-slate-200">Computer Science & Engineering</option>
-                              <option value="Electrical & Electronic Engineering" className="bg-[#0b1121] text-slate-200">Electrical & Electronic Engineering</option>
-                              <option value="Mechanical Engineering" className="bg-[#0b1121] text-slate-200">Mechanical Engineering</option>
-                              <option value="Civil Engineering" className="bg-[#0b1121] text-slate-200">Civil Engineering</option>
-                              <option value="Business Administration" className="bg-[#0b1121] text-slate-200">Business Administration</option>
-                              <option value="Economics" className="bg-[#0b1121] text-slate-200">Economics</option>
-                              <option value="Physics" className="bg-[#0b1121] text-slate-200">Physics</option>
-                              <option value="Mathematics" className="bg-[#0b1121] text-slate-200">Mathematics</option>
-                              <option value="Medicine" className="bg-[#0b1121] text-slate-200">Medicine</option>
-                              <option value="Law" className="bg-[#0b1121] text-slate-200">Law</option>
-                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Field/Major? Add custom</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
-                          </div>
+                          <CustomSelect
+                            value={regForm.major}
+                            onChange={handleMajorSelect}
+                            options={majorOptions}
+                            placeholder="Select Field / Major"
+                            disabled={!regForm.institution.trim() || regForm.isUnlistedInstitution}
+                          />
                         ) : (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
@@ -997,31 +1122,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Session / Batch */}
-                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                      <div className="group flex flex-col transition-all duration-500">
                         <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Session / Batch</label>
                         {!regForm.isCustomSession ? (
-                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
-                            <select
-                              name="sessionSelect"
-                              onChange={handleRegChange}
-                              value={regForm.session || ""}
-                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
-                            >
-                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Session / Batch</option>
-                              {customSessions.map((ses, idx) => (
-                                <option key={`custom-ses-${idx}`} value={ses} className="bg-[#0b1121] text-emerald-400 font-medium">{ses} (Custom)</option>
-                              ))}
-                              <option value="2019-2020" className="bg-[#0b1121] text-slate-200">2019-2020</option>
-                              <option value="2020-2021" className="bg-[#0b1121] text-slate-200">2020-2021</option>
-                              <option value="2021-2022" className="bg-[#0b1121] text-slate-200">2021-2022</option>
-                              <option value="2022-2023" className="bg-[#0b1121] text-slate-200">2022-2023</option>
-                              <option value="2023-2024" className="bg-[#0b1121] text-slate-200">2023-2024</option>
-                              <option value="2024-2025" className="bg-[#0b1121] text-slate-200">2024-2025</option>
-                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Session? Add custom</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
-                          </div>
+                          <CustomSelect
+                            value={regForm.session}
+                            onChange={handleSessionSelect}
+                            options={sessionOptions}
+                            placeholder="Select Session / Batch"
+                            disabled={!regForm.institution.trim() || regForm.isUnlistedInstitution}
+                          />
                         ) : (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
@@ -1063,30 +1173,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       </div>
 
                       {/* Academic Role */}
-                      <div className={`group flex flex-col transition-all duration-500 ${!regForm.institution.trim() || regForm.isUnlistedInstitution ? 'opacity-30 pointer-events-none blur-[1px]' : 'opacity-100'}`}>
+                      <div className="group flex flex-col transition-all duration-500">
                         <label className="text-[10px] font-bold text-slate-400 font-poppins mb-1.5 uppercase tracking-widest block transition-colors group-focus-within:text-primary-glow">Academic Role</label>
                         {!regForm.isCustomRole ? (
-                          <div className="relative rounded-xl transition-all duration-300 bg-slate-950/40 border border-white/5 group-focus-within:border-primary-glow/30 group-focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#2563eb] to-[#8b5cf6] opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
-                            <select
-                              name="roleSelect"
-                              value={regForm.role || ""}
-                              onChange={handleRegChange}
-                              className="w-full h-11 bg-transparent text-xs sm:text-sm text-slate-200 outline-none pl-4 pr-10 cursor-pointer appearance-none font-poppins"
-                            >
-                              <option value="" disabled className="bg-[#0b1121] text-slate-400">Select Academic Role</option>
-                              {customRoles.map((rl, idx) => (
-                                <option key={`custom-rl-${idx}`} value={rl} className="bg-[#0b1121] text-emerald-400 font-medium">{rl} (Custom)</option>
-                              ))}
-                              <option value="Undergraduate" className="bg-[#0b1121] text-slate-200">Undergraduate Student</option>
-                              <option value="Graduate / PhD" className="bg-[#0b1121] text-slate-200">Graduate / PhD Candidate</option>
-                              <option value="Researcher" className="bg-[#0b1121] text-slate-200">Academic Researcher</option>
-                              <option value="Professor" className="bg-[#0b1121] text-slate-200">Professor / Mentor</option>
-                              <option value="Other" className="bg-[#0b1121] text-slate-200">Other Academic Expert</option>
-                              <option value="unlisted" className="bg-[#0b1121] text-primary-glow font-bold">Can't find your Role? Add custom</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
-                          </div>
+                          <CustomSelect
+                            value={regForm.role}
+                            onChange={handleRoleSelect}
+                            options={roleOptions}
+                            placeholder="Select Academic Role"
+                            disabled={!regForm.institution.trim() || regForm.isUnlistedInstitution}
+                          />
                         ) : (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
