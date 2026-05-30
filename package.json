@@ -1,25 +1,22 @@
 {
-  "name": "unimind-root",
+  "name": "unimind",
   "private": true,
   "workspaces": [
-    "frontend",
-    "backend",
-    "api"
+    "frontend"
   ],
   "scripts": {
     "dev": "wrangler pages dev -- npm run dev --workspace=frontend",
-    "dev:all": "concurrently -n \"frontend,backend,api\" -c \"blue,green,purple\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=api\"",
-    "dev:full": "concurrently -n \"frontend,backend,api\" -c \"blue,green,purple\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=api\"",
     "build": "npm run build --workspace=frontend",
+    "deploy": "npm run build && wrangler pages deploy",
     "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "concurrently": "^9.2.1",
+    "wrangler": "^4.0.0"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fastapi": "^0.0.8",
-    "pg": "^8.21.0",
-    "uvicorn": "^0.0.1-security"
+    "pg": "^8.21.0"
   }
 }

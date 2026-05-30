@@ -3,6 +3,7 @@ import { corsHeaders } from "./utils";
 import { handleAuthRoutes } from "./routes/auth";
 import { handleApiRoutes } from "./routes/api";
 import { handleMetadataRoutes } from "./routes/metadata";
+import { handleCompressRoutes } from "./routes/compress";
 import { handleAllPagesRoutes } from "./pagesRouter";
 import { handleDynamicRoute } from "./api/dynamicHandler";
 
@@ -11,6 +12,7 @@ export interface Env {
   TURSO_AUTH_TOKEN: string;
   R2_BUCKET_NAME: string;
   OPENAI_API_KEY: string;
+  UNIMIND_BUCKET?: R2Bucket;  // R2 binding from wrangler.toml
 }
 
 export default {
@@ -58,6 +60,9 @@ export default {
     if (response) return response;
 
     response = await handleMetadataRoutes(url, request, db);
+    if (response) return response;
+
+    response = await handleCompressRoutes(url, request, db);
     if (response) return response;
 
     response = await handleDynamicRoute(url, request, db);
