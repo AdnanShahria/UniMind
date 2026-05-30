@@ -4,7 +4,8 @@ export async function handleAuthRoutes(url: URL, request: Request, db: any): Pro
   if (url.pathname === "/auth/register" && request.method === "POST") {
     try {
       const body: any = await request.json();
-      const { name, email, institution, district, country, major, role, password } = body;
+      const { name, institution, district, country, major, role, password } = body;
+      const email = body.email?.trim().toLowerCase();
       
       if (!email || !password || !name) {
         return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -89,7 +90,8 @@ export async function handleAuthRoutes(url: URL, request: Request, db: any): Pro
   if (url.pathname === "/auth/login" && request.method === "POST") {
     try {
       const body: any = await request.json();
-      const { email, password } = body;
+      const { password } = body;
+      const email = body.email?.trim().toLowerCase();
 
       if (!email || !password) {
         return new Response(JSON.stringify({ error: "Email and password are required" }), {
@@ -136,7 +138,13 @@ export async function handleAuthRoutes(url: URL, request: Request, db: any): Pro
       }
 
       console.log(`Authorizing ${email} in local offline database fallback...`);
-      const user = mockUsers.get(email);
+      let user = mockUsers.get(email);
+      
+      // Fallback for offline dev mode where isolate might have restarted and cleared mockUsers
+      if (!user && !db) {
+         user = { id: generateUUID(), email, name: 'Developer (Offline)', institution: 'Local', major: 'CS', role: 'Dev', password: hashedPassword };
+         mockUsers.set(email, user);
+      }
       
       if (user && user.password === hashedPassword) {
         const mockToken = btoa(JSON.stringify({ userId: user.id, email }));
