@@ -71,7 +71,7 @@ export const LongTermGoals = ({
                 className={`relative group overflow-visible transition-all ${activeMenuId === item.id ? 'z-30' : 'z-10'}`}
               >
                 <div className="flex items-center justify-between mb-0.5 pr-8">
-                  <span className="text-sm text-slate-200 font-poppins font-medium">{item.title}</span>
+                  <span className="text-sm text-slate-200 font-poppins font-medium">{item.title || item.goal}</span>
                   <span className="text-xs text-purple-400 font-poppins font-bold bg-purple-500/10 px-2 py-0.5 rounded-md">{item.progress || 0}%</span>
                 </div>
 

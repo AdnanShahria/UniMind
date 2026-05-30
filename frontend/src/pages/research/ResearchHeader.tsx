@@ -2,7 +2,7 @@ import { FlaskConical, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { ActionModal } from '../../components/ActionModal';
 
-export const ResearchHeader = ({ userName }: { userName: string }) => {
+export const ResearchHeader = ({ userName, onSubmit }: { userName: string; onSubmit?: (content: string) => Promise<void> }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -29,6 +29,7 @@ export const ResearchHeader = ({ userName }: { userName: string }) => {
         title="Start New Research Project" 
         placeholder="Project description, objective, or team members..." 
         actionText="Create Project"
+        onSubmit={onSubmit}
       />
     </>
   );

@@ -58,10 +58,8 @@ export const PaperSearch = ({ userId }: { userId: string | null }) => {
         user_id: userId,
         title: paper.title,
         authors: paper.authors,
-        journal: 'arXiv',
-        year: paper.year,
-        citations: 0,
         status: 'reading',
+        url: paper.link,
         abstract: paper.abstract
       }]);
       toast.success('Paper saved to your library!');

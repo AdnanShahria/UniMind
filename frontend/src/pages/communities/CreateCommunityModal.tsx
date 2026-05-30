@@ -53,6 +53,9 @@ export const CreateCommunityModal = ({ isOpen, onClose }: { isOpen: boolean; onC
       toast.error('Community created but failed to assign owner role');
     } else {
       toast.success(`${name} created successfully!`);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
 
     setIsSubmitting(false);

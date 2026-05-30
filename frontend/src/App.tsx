@@ -8,9 +8,11 @@ import { FeedPage } from './pages/FeedPage';
 import { NotesPage } from './pages/notes/NotesPage';
 import { AITutorPage } from './pages/ai-tutor/AITutorPage';
 import { CommunitiesPage } from './pages/communities/CommunitiesPage';
+import { CommunityDetailPage } from './pages/communities/CommunityDetailPage';
 import { MessagesPage } from './pages/messages/MessagesPage';
 import { PlannerPage } from './pages/planner/PlannerPage';
 import { ResearchPage } from './pages/research/ResearchPage';
+import { ResearchDetailPage } from './pages/research/ResearchDetailPage';
 import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ProfileSettingsPage } from './pages/settings/ProfileSettingsPage';
@@ -63,9 +65,11 @@ function App() {
             <Route path="notes" element={<NotesPage />} />
             <Route path="ai" element={<AITutorPage />} />
             <Route path="communities" element={<CommunitiesPage />} />
+            <Route path="communities/:id" element={<CommunityDetailPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="planner" element={<PlannerPage />} />
             <Route path="research" element={<ResearchPage />} />
+            <Route path="research/:id" element={<ResearchDetailPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="admin" element={<AdminPanel />} />
             <Route path="settings">

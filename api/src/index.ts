@@ -3,6 +3,8 @@ import { corsHeaders } from "./utils";
 import { handleAuthRoutes } from "./routes/auth";
 import { handleApiRoutes } from "./routes/api";
 import { handleMetadataRoutes } from "./routes/metadata";
+import { handleDynamicRoute } from "./routes/dynamicHandler";
+import { handleAllPagesRoutes } from "./pagesRouter";
 
 export interface Env {
   TURSO_DATABASE_URL: string;
@@ -56,6 +58,12 @@ export default {
     if (response) return response;
 
     response = await handleMetadataRoutes(url, request, db);
+    if (response) return response;
+
+    response = await handleAllPagesRoutes(url, request, db);
+    if (response) return response;
+
+    response = await handleDynamicRoute(url, request, db);
     if (response) return response;
 
     return new Response(

@@ -9,21 +9,30 @@ interface ActionModalProps {
   placeholder?: string;
   actionText?: string;
   children?: React.ReactNode;
+  onSubmit?: (content: string) => Promise<void>;
 }
 
-export const ActionModal = ({ isOpen, onClose, title, placeholder = "Enter details...", actionText = "Create", children }: ActionModalProps) => {
+export const ActionModal = ({ isOpen, onClose, title, placeholder = "Enter details...", actionText = "Create", children, onSubmit }: ActionModalProps) => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!content.trim() && !children) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      if (onSubmit) {
+        await onSubmit(content);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
       setContent('');
       onClose();
-    }, 600);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;

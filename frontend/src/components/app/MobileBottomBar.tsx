@@ -177,7 +177,7 @@ export const MobileBottomBar = () => {
                     onClick={async () => {
                       setMoreOpen(false);
                       await turso.auth.signOut();
-                      window.location.href = '/login';
+                      window.location.href = '/auth';
                     }}
                     className="block outline-none w-full"
                   >

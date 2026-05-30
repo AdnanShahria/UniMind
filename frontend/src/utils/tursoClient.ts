@@ -151,7 +151,9 @@ export const turso: any = {
       _data: null,
       _single: false,
       select: (_columns?: string, _options?: any) => {
-        builder._action = 'select';
+        if (!builder._action) {
+          builder._action = 'select';
+        }
         return builder;
       },
       insert: (data: any) => {
@@ -184,6 +186,10 @@ export const turso: any = {
         return builder;
       },
       single: () => {
+        builder._single = true;
+        return builder;
+      },
+      maybeSingle: () => {
         builder._single = true;
         return builder;
       },
@@ -226,10 +232,22 @@ export const turso: any = {
               const res = await fetch(`${API_URL}/api/notes`, { headers });
               const json = await res.json();
               result.data = json.data || [];
-            } else if (builder._action === 'insert' || builder._action === 'upsert' || builder._action === 'update') {
+            } else if (builder._action === 'insert') {
               const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
               const res = await fetch(`${API_URL}/api/notes`, {
                 method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              result.data = json.data;
+            } else if (builder._action === 'upsert' || builder._action === 'update') {
+              const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
+              if (builder._eq && builder._eq.column === 'id' && !payload.id) {
+                 payload.id = builder._eq.value;
+              }
+              const res = await fetch(`${API_URL}/api/dynamic/notes`, {
+                method: 'PUT',
                 headers,
                 body: JSON.stringify(payload)
               });
@@ -249,10 +267,22 @@ export const turso: any = {
               const res = await fetch(`${API_URL}/api/tasks`, { headers });
               const json = await res.json();
               result.data = json.data || [];
-            } else if (builder._action === 'insert' || builder._action === 'upsert' || builder._action === 'update') {
+            } else if (builder._action === 'insert') {
               const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
               const res = await fetch(`${API_URL}/api/tasks`, {
                 method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              result.data = json.data;
+            } else if (builder._action === 'upsert' || builder._action === 'update') {
+              const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
+              if (builder._eq && builder._eq.column === 'id' && !payload.id) {
+                 payload.id = builder._eq.value;
+              }
+              const res = await fetch(`${API_URL}/api/dynamic/tasks`, {
+                method: 'PUT',
                 headers,
                 body: JSON.stringify(payload)
               });
@@ -350,7 +380,32 @@ export const turso: any = {
               result.error = json.error ? { message: json.error } : null;
             }
             } else {
-              result.data = [];
+              // Dynamic fallback for communities, research, feed posts, etc.
+              const method = builder._action === 'select' ? 'GET' : 
+                             builder._action === 'delete' ? 'DELETE' : 
+                             builder._action === 'update' ? 'PUT' : 'POST';
+                             
+              let url = `${API_URL}/api/dynamic/${table}`;
+              if ((method === 'GET' || method === 'DELETE') && builder._eq) {
+                url += `?eqColumn=${builder._eq.column}&eqValue=${builder._eq.value}`;
+              }
+              
+              const options: any = { method, headers };
+              if (method !== 'GET' && method !== 'DELETE') {
+                 const payload = Array.isArray(builder._data) ? builder._data[0] : builder._data;
+                 if (method === 'PUT' && builder._eq && builder._eq.column === 'id' && !payload.id) {
+                     payload.id = builder._eq.value;
+                 }
+                 options.body = JSON.stringify(payload);
+              }
+              
+              const res = await fetch(url, options);
+              const json = await res.json();
+              if (json.success) {
+                result.data = json.data;
+              } else {
+                result.error = { message: json.error };
+              }
             }
           }
 

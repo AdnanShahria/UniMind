@@ -454,7 +454,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     if (!regForm.name.trim()) tempErrors.name = 'Full name is required';
     if (!regForm.email.trim()) {
       tempErrors.email = 'Academic email is required';
-    } else if (!/\\S+@\\S+\\.\\S+/.test(regForm.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(regForm.email)) {
       tempErrors.email = 'Please provide a valid email';
     }
     if (!regForm.institution.trim()) tempErrors.institution = 'Institution is required';
@@ -473,7 +473,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     const tempErrors: Record<string, string> = {};
     if (!loginForm.email.trim()) {
       tempErrors.email = 'Email is required';
-    } else if (!/\\S+@\\S+\\.\\S+/.test(loginForm.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(loginForm.email)) {
       tempErrors.email = 'Please provide a valid email';
     }
     if (!loginForm.password) tempErrors.password = 'Password is required';

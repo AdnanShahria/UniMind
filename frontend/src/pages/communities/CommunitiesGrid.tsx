@@ -1,7 +1,17 @@
 import { motion } from 'framer-motion';
 import { Users, MessageSquare, UserPlus, Lock, Shield, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export const CommunitiesGrid = ({ displayCommunities, isLoading }: { displayCommunities: any[], isLoading: boolean }) => {
+export const CommunitiesGrid = ({ 
+  displayCommunities, 
+  isLoading, 
+  onJoin
+}: { 
+  displayCommunities: any[], 
+  isLoading: boolean; 
+  onJoin?: (communityId: string) => void; 
+}) => {
+  const navigate = useNavigate();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {isLoading ? (
@@ -16,6 +26,9 @@ export const CommunitiesGrid = ({ displayCommunities, isLoading }: { displayComm
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
             whileHover={{ y: -3 }}
+            onClick={() => {
+              navigate(`/app/communities/${community.id}`);
+            }}
             className={`rounded-2xl bg-gradient-to-br ${community.color} border ${community.border} p-5 cursor-pointer group transition-all`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -53,12 +66,24 @@ export const CommunitiesGrid = ({ displayCommunities, isLoading }: { displayComm
                   <span className="text-[10px] text-purple-400 font-poppins font-medium px-2 py-1 bg-purple-500/10 rounded-lg flex items-center gap-1">
                     <Shield className="w-3 h-3" /> {community.myRole}
                   </span>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-glow text-[11px] text-white font-poppins font-medium transition-all">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/app/communities/${community.id}`);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-glow text-[11px] text-white font-poppins font-medium transition-all"
+                  >
                     Open <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
               ) : (
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-primary/20 border border-white/[0.08] hover:border-primary/30 text-[11px] text-slate-300 hover:text-white font-poppins font-medium transition-all">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onJoin?.(community.id);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-primary/20 border border-white/[0.08] hover:border-primary/30 text-[11px] text-slate-300 hover:text-white font-poppins font-medium transition-all"
+                >
                   <UserPlus className="w-3 h-3" /> Join
                 </button>
               )}

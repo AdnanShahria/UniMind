@@ -380,3 +380,17 @@ CREATE TABLE IF NOT EXISTS flashcards (
 
 CREATE INDEX IF NOT EXISTS idx_flashcards_note ON flashcards(note_id);
 CREATE INDEX IF NOT EXISTS idx_flashcards_user ON flashcards(user_id);
+
+-- Table: notifications
+CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+

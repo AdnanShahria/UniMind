@@ -350,7 +350,7 @@ export const Sidebar = () => {
           <button
             onClick={async () => {
               await turso.auth.signOut();
-              window.location.href = '/login';
+              window.location.href = '/auth';
             }}
             className="block w-full outline-none mt-1"
           >

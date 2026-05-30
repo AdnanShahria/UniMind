@@ -73,7 +73,7 @@ export const DashboardPage = () => {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'upcoming')
+        .eq('status', 'pending')
         .order('due_date', { ascending: true })
         .limit(4);
       if (tasks) {

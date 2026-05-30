@@ -33,7 +33,14 @@ export const PlannerPage = () => {
       
       // Fetch long-term goals
       const { data: ltgs } = await turso.from('long_term_goals').select('*').eq('user_id', user.id);
-      if (ltgs) setDbLongTermGoals(ltgs);
+      if (ltgs) {
+        setDbLongTermGoals(ltgs.map((g: any) => ({
+          id: g.id,
+          title: g.goal || g.title || '',
+          progress: g.progress || 0,
+          color: g.color || ''
+        })));
+      }
 
       // Fetch weekly goals
       const { data: goals } = await turso.from('weekly_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
@@ -162,7 +169,7 @@ export const PlannerPage = () => {
     if (data.id) {
       // EDIT MODE
       if (type === 'long-term') {
-        await turso.from('long_term_goals').update({ title: data.title }).eq('id', data.id);
+        await turso.from('long_term_goals').update({ goal: data.title }).eq('id', data.id);
       } else if (type === 'weekly') {
         await turso.from('weekly_goals')
           .update({ 
@@ -218,7 +225,7 @@ export const PlannerPage = () => {
     } else {
       // CREATE MODE
       if (type === 'long-term') {
-        await turso.from('long_term_goals').insert([{ user_id: user.id, title: data.title }]);
+        await turso.from('long_term_goals').insert([{ user_id: user.id, goal: data.title }]);
       } else if (type === 'weekly') {
         await turso.from('weekly_goals').insert([{ user_id: user.id, goal: data.title, long_term_goal_id: data.parentId || null }]);
       } else if (type === 'task') {

@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, TrendingUp, ExternalLink, Sparkles, Loader2, Copy, ChevronDown } from 'lucide-react';
+import { FileText, TrendingUp, Sparkles, Loader2, Copy, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -10,6 +11,12 @@ export const ResearchPapersList = ({ displayPapers }: { displayPapers: any[] }) 
   const [summarizingId, setSummarizingId] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<Record<string, string>>({});
   const [citationOpenId, setCitationOpenId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Reading' | 'Writing' | 'Completed'>('All');
+
+  const filteredPapers = displayPapers.filter(paper => {
+    if (activeFilter === 'All') return true;
+    return paper.status?.toLowerCase() === activeFilter.toLowerCase();
+  });
 
   const handleSummarize = async (paper: any) => {
     if (summaries[paper.id]) {
@@ -94,18 +101,24 @@ export const ResearchPapersList = ({ displayPapers }: { displayPapers: any[] }) 
         </h3>
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           {['All', 'Reading', 'Writing', 'Completed'].map((f) => (
-            <button key={f} className={`text-[11px] font-poppins px-3 py-1 rounded-lg transition-colors whitespace-nowrap ${
-              f === 'All' ? 'bg-primary/10 text-primary-glow font-semibold' : 'text-slate-500 hover:text-white'
-            }`}>{f}</button>
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f as any)}
+              className={`text-[11px] font-poppins px-3 py-1 rounded-lg transition-colors whitespace-nowrap ${
+                activeFilter === f ? 'bg-primary/10 text-primary-glow font-semibold' : 'text-slate-500 hover:text-white'
+              }`}
+            >
+              {f}
+            </button>
           ))}
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
-        {displayPapers.length === 0 ? (
+        {filteredPapers.length === 0 ? (
           <div className="px-6 py-16 text-center text-slate-500 text-sm font-poppins">No papers yet. Search and save papers!</div>
         ) : (
-          displayPapers.map((paper, i) => (
+          filteredPapers.map((paper, i) => (
             <motion.div
               key={paper.id || i}
               initial={{ opacity: 0, x: -10 }}
@@ -115,9 +128,12 @@ export const ResearchPapersList = ({ displayPapers }: { displayPapers: any[] }) 
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-slate-200 font-poppins group-hover:text-white transition-colors">
+                  <Link 
+                    to={`/app/research/${paper.id}`} 
+                    className="text-[14px] font-semibold text-slate-200 font-poppins hover:text-primary-glow group-hover:text-white transition-colors block cursor-pointer"
+                  >
                     {paper.title}
-                  </p>
+                  </Link>
                   <p className="text-[12px] text-slate-400 font-poppins mt-1.5">{paper.authors}</p>
                   <p className="text-[11px] text-slate-500 font-poppins mt-0.5">{paper.journal} · {paper.year}</p>
                   
@@ -204,15 +220,6 @@ export const ResearchPapersList = ({ displayPapers }: { displayPapers: any[] }) 
                       )}
                     </AnimatePresence>
                   </div>
-
-                  <a 
-                    href={`https://arxiv.org/abs/${paper.id}`} // Best guess fallback link
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.06] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
                 </div>
               </div>
             </motion.div>
