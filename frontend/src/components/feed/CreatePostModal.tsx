@@ -75,7 +75,7 @@ export const CreatePostModal = ({
     if (!content.trim() || !currentUser) return;
     
     setIsPosting(true);
-    let mediaUrls: string[] = [];
+    const mediaUrls: string[] = [];
     let postType = 'text';
 
     if (isAnnouncement) {

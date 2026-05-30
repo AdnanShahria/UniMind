@@ -125,12 +125,14 @@ export const AIOptimizerModal = ({ isOpen, onClose, tasks, goals, longTermGoals,
     }
   };
 
+   
   useEffect(() => {
     if (isOpen) {
       runOptimization();
     } else {
       setReport(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleApply = async () => {

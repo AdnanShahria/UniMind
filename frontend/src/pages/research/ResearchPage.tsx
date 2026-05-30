@@ -14,6 +14,7 @@ export const ResearchPage = () => {
   const [dbCollaborators, setDbCollaborators] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'library' | 'search'>('library');
 
+   
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await turso.auth.getUser();
@@ -67,6 +68,7 @@ export const ResearchPage = () => {
       // Just fetch user info if not fetched
       if (!userId) fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   return (

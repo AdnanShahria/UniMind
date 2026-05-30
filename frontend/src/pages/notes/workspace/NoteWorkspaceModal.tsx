@@ -144,6 +144,7 @@ export const NoteWorkspaceModal = ({
     return () => setIsAppFullScreen(false);
   }, [setIsAppFullScreen]);
 
+   
   useEffect(() => {
     if (note && isOpen) {
       setEditTitle(note.title);
@@ -155,6 +156,7 @@ export const NoteWorkspaceModal = ({
       fetchContent(note.id);
       checkFlashcards(note.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note, isOpen]);
 
   const fetchContent = async (noteId: string | number) => {
@@ -215,15 +217,21 @@ export const NoteWorkspaceModal = ({
   const handleDelete = async () => {
     if (!note) return;
     setIsDeleting(true);
-    const { error } = await turso.from('notes').delete().eq('id', note.id);
-    if (error) {
-      toast.error('Failed to delete note');
-    } else {
-      toast.success('Note deleted');
-      onDeleted(note.id);
-      onClose();
+    try {
+      const { error } = await turso.from('notes').delete().eq('id', note.id);
+      if (error) {
+        toast.error(`Failed to delete note: ${error.message || 'Unknown error'}`);
+      } else {
+        toast.success('Note deleted');
+        onDeleted(note.id);
+        onClose();
+      }
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      toast.error(`Unexpected error: ${err.message}`);
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleting(false);
   };
 
   const handleGenerateSummary = async () => {
@@ -437,6 +445,7 @@ export const NoteWorkspaceModal = ({
                   activeTab={activeTab}
                   setActiveTab={setActiveTab}
                   studioData={studioData}
+                  hasFlashcards={hasFlashcards}
                 />
                 
                 {/* Right Panel: Studio Tools + AI Chat */}

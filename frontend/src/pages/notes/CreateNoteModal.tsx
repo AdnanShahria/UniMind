@@ -20,6 +20,7 @@ interface CreateNoteModalProps {
   onCreated: () => void;
   initialContent?: string;
   initialTitle?: string;
+  currentFolderId: string | null;
 }
 
 export const CreateNoteModal = ({
@@ -28,11 +29,11 @@ export const CreateNoteModal = ({
   onCreated,
   initialContent = '',
   initialTitle = '',
+  currentFolderId,
 }: CreateNoteModalProps) => {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
-  const [selectedFolder, setSelectedFolder] = useState('');
-  const [newFolder, setNewFolder] = useState('');
+  const [selectedFolder, setSelectedFolder] = useState(currentFolderId || '');
   const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
   const [color, setColor] = useState('text-blue-400');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,9 +50,10 @@ export const CreateNoteModal = ({
       setContent(initialContent);
       setUploadedFile(null);
       setIsExtracting(false);
+      setSelectedFolder(currentFolderId || '');
       fetchFolders();
     }
-  }, [isOpen, initialTitle, initialContent]);
+  }, [isOpen, initialTitle, initialContent, currentFolderId]);
 
   const fetchFolders = async () => {
     const { data: { user } } = await turso.auth.getUser();
@@ -115,19 +117,7 @@ export const CreateNoteModal = ({
       const { data: { user } } = await turso.auth.getUser();
       if (!user) { toast.error('Please sign in first'); return; }
 
-      let folderId: string | null = null;
-
-      // Create new folder if typed
-      if (newFolder.trim()) {
-        const { data: createdFolder } = await turso
-          .from('folders')
-          .insert([{ user_id: user.id, name: newFolder.trim() }])
-          .select()
-          .single();
-        folderId = createdFolder?.id || null;
-      } else if (selectedFolder) {
-        folderId = selectedFolder;
-      }
+      let folderId: string | null = selectedFolder || currentFolderId;
 
       const { error } = await turso.from('notes').insert([{
         author_id: user.id,
@@ -144,8 +134,7 @@ export const CreateNoteModal = ({
       toast.success('Note created!');
       setTitle('');
       setContent('');
-      setSelectedFolder('');
-      setNewFolder('');
+      setSelectedFolder(currentFolderId || '');
       setUploadedFile(null);
       onCreated();
       onClose();
@@ -265,33 +254,20 @@ export const CreateNoteModal = ({
                 </div>
 
                 {/* Folder */}
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="text-[10px] text-slate-500 font-poppins uppercase tracking-wider font-semibold mb-1.5 block flex items-center gap-1">
-                      <FolderOpen className="w-3 h-3" /> Folder
-                    </label>
-                    <select
-                      value={selectedFolder}
-                      onChange={e => setSelectedFolder(e.target.value)}
-                      disabled={!!newFolder.trim()}
-                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 font-poppins outline-none focus:border-primary/40 transition-colors disabled:opacity-40"
-                    >
-                      <option value="">No folder</option>
-                      {folders.map(f => (
-                        <option key={f.id} value={f.id}>{f.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-500 font-poppins uppercase tracking-wider font-semibold mb-1.5 block">Create New Folder</label>
-                    <input
-                      type="text"
-                      placeholder="Folder name..."
-                      value={newFolder}
-                      onChange={e => setNewFolder(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 font-poppins placeholder-slate-600 outline-none focus:border-primary/40 transition-colors"
-                    />
-                  </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-poppins uppercase tracking-wider font-semibold mb-1.5 block flex items-center gap-1">
+                    <FolderOpen className="w-3 h-3" /> Save to Folder
+                  </label>
+                  <select
+                    value={selectedFolder}
+                    onChange={e => setSelectedFolder(e.target.value)}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 font-poppins outline-none focus:border-primary/40 transition-colors"
+                  >
+                    <option value="">Home (Root)</option>
+                    {folders.map(f => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Color tag */}

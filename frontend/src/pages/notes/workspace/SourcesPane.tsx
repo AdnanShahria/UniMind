@@ -37,10 +37,11 @@ export const SourcesPane = ({ note, isCollapsed, onToggleCollapse }: SourcesPane
       {isCollapsed ? (
         <div className="flex-1 flex flex-col items-center py-3 gap-2">
           <button
-            className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors flex flex-col items-center gap-1"
             title="Add source"
           >
             <Plus className="w-4 h-4" />
+            <span className="text-[9px] font-semibold">Source</span>
           </button>
           <div className="w-6 h-px bg-white/[0.06] my-1" />
           {note.fileUrl ? (
@@ -62,10 +63,11 @@ export const SourcesPane = ({ note, isCollapsed, onToggleCollapse }: SourcesPane
           {/* Bottom globe icon */}
           <div className="mt-auto">
             <button
-              className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors flex flex-col items-center gap-1"
               title="Fast Research"
             >
               <Globe className="w-3.5 h-3.5" />
+              <span className="text-[9px] font-semibold text-center leading-[10px]">Fast<br/>Search</span>
             </button>
           </div>
         </div>

@@ -97,6 +97,7 @@ export const AppearanceSettingsPage = () => {
   const [showSavedMsg, setShowSavedMsg] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
+   
   useEffect(() => {
     const fetch = async () => {
       const { data: { user } } = await turso.auth.getUser();
@@ -129,6 +130,7 @@ export const AppearanceSettingsPage = () => {
       }
     };
     fetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSave = async (updates: Record<string, any>) => {

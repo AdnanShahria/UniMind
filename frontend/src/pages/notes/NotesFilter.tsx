@@ -20,7 +20,7 @@ export const NotesFilter = ({
   setViewMode,
 }: NotesFilterProps) => {
   return (
-    <motion.div variants={fadeIn} className="flex items-center gap-3 mb-6">
+    <motion.div variants={fadeIn} className="flex items-center gap-3">
       <div className="flex-1 max-w-md flex items-center gap-2.5 h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-white/10 transition-all focus-within:border-primary/50 focus-within:bg-white/[0.06]">
         <Search className="w-4 h-4 text-slate-500" />
         <input

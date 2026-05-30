@@ -1,12 +1,15 @@
 export interface FolderType {
+  id: string;
   name: string;
   count: number;
   color: string;
   borderColor: string;
+  parent_id?: string | null;
 }
 
 export interface NoteType {
   id: string | number;
+  folder_id?: string | null;
   title: string;
   course: string;
   pages: number;

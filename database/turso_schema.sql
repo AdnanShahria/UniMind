@@ -106,11 +106,15 @@ CREATE TABLE IF NOT EXISTS folders (
     user_id TEXT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     color TEXT,
+    parent_id TEXT REFERENCES folders(id) ON DELETE CASCADE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_folders_user ON folders(user_id);
+
+-- Migration statement to add parent_id to existing databases (will warn if already exists, safely ignored)
+ALTER TABLE folders ADD COLUMN parent_id TEXT REFERENCES folders(id) ON DELETE CASCADE;
 
 -- Table: notes
 CREATE TABLE IF NOT EXISTS notes (

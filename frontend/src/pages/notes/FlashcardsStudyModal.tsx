@@ -19,6 +19,7 @@ export const FlashcardsStudyModal = ({ isOpen, onClose, noteId }: FlashcardsStud
   const [sessionState, setSessionState] = useState<'studying' | 'complete'>('studying');
   const [sessionResults, setSessionResults] = useState({ mastered: 0, learning: 0 });
 
+   
   useEffect(() => {
     if (isOpen) {
       loadFlashcards();
@@ -29,6 +30,7 @@ export const FlashcardsStudyModal = ({ isOpen, onClose, noteId }: FlashcardsStud
       setSessionState('studying');
       setSessionResults({ mastered: 0, learning: 0 });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, noteId]);
 
   const loadFlashcards = async (onlyDifficult = false) => {

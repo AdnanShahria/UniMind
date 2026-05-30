@@ -1,130 +1,12 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, Loader2, Save, Check, Copy, FileText, Sparkles, Play, Square, ChevronLeft, ChevronRight, Maximize, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
-import { NoteType } from '../types';
+import { motion } from 'framer-motion';
+import { Edit3, Loader2, Save, Check, Copy, FileText, Sparkles, Play, Square } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import mermaid from 'mermaid';
-
-const MermaidViewer = ({ code }: { code: string }) => {
-  const [svg, setSvg] = useState<string>('');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  
-  useEffect(() => {
-    let isMounted = true;
-    const renderChart = async () => {
-      try {
-        mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
-        const { svg: renderedSvg } = await mermaid.render(id, code);
-        if (isMounted) setSvg(renderedSvg);
-      } catch (e) {
-        console.error("Mermaid error:", e);
-        if (isMounted) setSvg(`<div class="text-red-400 p-4 border border-red-500/30 rounded-lg bg-red-500/10">Failed to render diagram</div>`);
-      }
-    };
-    renderChart();
-    return () => { isMounted = false; };
-  }, [code]);
-
-  return (
-    <>
-      <div className="w-full relative flex justify-center bg-white/5 rounded-xl p-6 my-6 overflow-auto border border-white/10 group">
-        <button 
-          onClick={() => setIsFullscreen(true)}
-          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          title="Fullscreen"
-        >
-          <Maximize className="w-4 h-4" />
-        </button>
-        {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <Loader2 className="w-6 h-6 animate-spin text-primary" />}
-      </div>
-
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {isFullscreen && (
-            <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-8 bg-black/95 backdrop-blur-xl">
-              
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/10 p-1.5 rounded-2xl backdrop-blur-md z-20 border border-white/10">
-                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-2 rounded-xl hover:bg-white/20 text-slate-300 transition-colors" title="Zoom Out">
-                  <ZoomOut className="w-5 h-5" />
-                </button>
-                <div className="w-16 text-center text-sm font-semibold text-white font-poppins">{Math.round(zoom * 100)}%</div>
-                <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-2 rounded-xl hover:bg-white/20 text-slate-300 transition-colors" title="Zoom In">
-                  <ZoomIn className="w-5 h-5" />
-                </button>
-                <div className="w-px h-6 bg-white/20 mx-1" />
-                <button onClick={() => setZoom(1)} className="p-2 rounded-xl hover:bg-white/20 text-slate-300 transition-colors" title="Reset Zoom">
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-              </div>
-
-              <button 
-                onClick={() => { setIsFullscreen(false); setZoom(1); }}
-                className="absolute top-6 right-6 p-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors z-20 border border-white/10"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }} 
-                animate={{ scale: 1, opacity: 1 }} 
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="w-full h-full flex justify-center items-center overflow-auto p-4"
-              >
-                {svg ? (
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: svg }} 
-                    style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease-out' }}
-                    className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-[90vw]" 
-                  />
-                ) : <Loader2 className="w-8 h-8 animate-spin text-primary" />}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-    </>
-  );
-};
-
-const SlideCarousel = ({ slidesText, renderers }: { slidesText: string, renderers: any }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const slides = slidesText.split('---').map(s => s.trim()).filter(s => s.length > 0);
-
-  const nextSlide = () => setCurrentSlide(p => Math.min(p + 1, slides.length - 1));
-  const prevSlide = () => setCurrentSlide(p => Math.max(p - 1, 0));
-
-  if (slides.length === 0) return <div className="text-slate-400">No slides generated.</div>;
-
-  return (
-    <div className="w-full flex flex-col items-center max-w-4xl mx-auto space-y-6 my-4">
-      <div className="w-full aspect-[16/9] bg-[#1a1d24] border border-white/10 rounded-2xl p-8 sm:p-12 shadow-2xl relative overflow-y-auto custom-scrollbar flex flex-col justify-center">
-        <div className="prose prose-invert max-w-none text-base sm:text-lg font-poppins text-slate-200">
-          <ReactMarkdown components={renderers}>{slides[currentSlide]}</ReactMarkdown>
-        </div>
-        <div className="absolute bottom-4 right-6 text-xs font-semibold text-slate-500">
-          {currentSlide + 1} / {slides.length}
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <button onClick={prevSlide} disabled={currentSlide === 0} className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-30 transition-colors">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div className="flex gap-1.5 flex-wrap justify-center max-w-[200px]">
-          {slides.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-white/20'}`} />
-          ))}
-        </div>
-        <button onClick={nextSlide} disabled={currentSlide === slides.length - 1} className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-30 transition-colors">
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-};
+import { NoteType } from '../../types';
+import { MermaidViewer } from './MermaidViewer';
+import { SlideCarousel } from './SlideCarousel';
+import { FlashcardsTab } from './FlashcardsTab';
 
 interface EditorPaneProps {
   note: NoteType;
@@ -138,9 +20,10 @@ interface EditorPaneProps {
   handleSave: () => void;
   copied: boolean;
   handleCopy: () => void;
-  activeTab: 'notes'|'study_guide'|'mind_map'|'slides'|'report'|'audio'|'summary';
+  activeTab: 'notes'|'study_guide'|'mind_map'|'slides'|'report'|'audio'|'summary'|'flashcards';
   setActiveTab: (t: any) => void;
   studioData: any;
+  hasFlashcards?: boolean;
 }
 
 export const EditorPane = ({
@@ -157,7 +40,8 @@ export const EditorPane = ({
   handleCopy,
   activeTab,
   setActiveTab,
-  studioData
+  studioData,
+  hasFlashcards
 }: EditorPaneProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -191,7 +75,7 @@ export const EditorPane = ({
   }, [onDrag, stopDrag]);
 
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    mermaid.initialize({ startOnLoad: false, theme: 'dark', suppressErrorRendering: true });
   }, []);
 
   useEffect(() => {
@@ -218,6 +102,7 @@ export const EditorPane = ({
     { id: 'notes', label: 'Notes' },
     ...(aiSummary ? [{ id: 'summary', label: 'Summary' }] : []),
     ...(studioData?.study_guide ? [{ id: 'study_guide', label: 'Study Guide' }] : []),
+    ...(hasFlashcards ? [{ id: 'flashcards', label: 'Flashcards' }] : []),
     ...(studioData?.slides ? [{ id: 'slides', label: 'Slides' }] : []),
     ...(studioData?.mind_map ? [{ id: 'mind_map', label: 'Mind Map' }] : []),
     ...(studioData?.report ? [{ id: 'report', label: 'Report' }] : []),
@@ -247,6 +132,7 @@ export const EditorPane = ({
   const isViewableUrl = note.fileUrl && (note.fileUrl.startsWith('http') || note.fileUrl.startsWith('blob:') || note.fileUrl.startsWith('data:'));
 
   const renderers = {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     code({ node, inline, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || '');
       if (!inline && match && match[1] === 'mermaid') {
@@ -293,7 +179,6 @@ export const EditorPane = ({
               </div>
             )}
           </div>
-          {/* Draggable Resizer */}
           <div 
             onMouseDown={startDrag}
             className="h-1.5 bg-white/[0.02] hover:bg-primary/50 cursor-ns-resize shrink-0 transition-colors z-10 flex items-center justify-center group"
@@ -375,6 +260,10 @@ export const EditorPane = ({
             <div className="prose prose-invert max-w-none text-sm font-poppins text-slate-300">
               <ReactMarkdown components={renderers}>{studioData.study_guide}</ReactMarkdown>
             </div>
+          )}
+
+          {activeTab === 'flashcards' && (
+            <FlashcardsTab noteId={note.id} />
           )}
 
           {activeTab === 'slides' && studioData?.slides && (

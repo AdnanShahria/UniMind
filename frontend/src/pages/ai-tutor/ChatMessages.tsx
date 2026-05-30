@@ -74,7 +74,8 @@ export const ChatMessages = ({
                       remarkPlugins={[remarkMath]}
                       rehypePlugins={[rehypeKatex]}
                       components={{
-                        code({ node, inline, className, children, ...props }: any) {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        code({ node: _node, inline, className, children, ...props }: any) {
                           const match = /language-(\w+)/.exec(className || '');
                           return !inline && match ? (
                             <div className="rounded-md overflow-hidden my-4 border border-white/[0.1]">

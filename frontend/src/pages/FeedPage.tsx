@@ -58,7 +58,7 @@ export const FeedPage = () => {
 
   // Mock filtering and recommendation algorithm
   const getProcessedPosts = () => {
-    let result = [...posts];
+    const result = [...posts];
 
     // 1. Tag Filtering
     if (activeTag) {

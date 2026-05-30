@@ -95,7 +95,7 @@ export const MessagesPage = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        let content = data.choices?.[0]?.message?.content || '[]';
+        const content = data.choices?.[0]?.message?.content || '[]';
         const match = content.match(/\[.*\]/s);
         if (match) {
           const parsed = JSON.parse(match[0]);
@@ -156,15 +156,18 @@ export const MessagesPage = () => {
     }
   };
 
+   
   useEffect(() => {
     if (activeConv && currentUser) {
       fetchMessages(activeConv.id, currentUser.id);
     } else {
       setDbMessages([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConv, currentUser]);
 
   // Polling mechanism (every 3 seconds)
+   
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (activeConvRef.current && currentUserRef.current) {
@@ -173,6 +176,7 @@ export const MessagesPage = () => {
       }
     }, 3000);
     return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSendMessage = async (content: string, metadata: any = {}) => {

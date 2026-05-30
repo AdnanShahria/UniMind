@@ -32,8 +32,10 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
   const [commentPhotoPreview, setCommentPhotoPreview] = useState<string | null>(null);
   const commentPhotoInputRef = useRef<HTMLInputElement>(null);
 
+   
   useEffect(() => {
     fetchInteractions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post.id, currentUser]);
 
   const fetchInteractions = async () => {

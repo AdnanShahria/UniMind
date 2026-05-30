@@ -70,6 +70,7 @@ Content: ${content || 'No content provided — base it on the title.'}`;
 export const generateMindMap = async (title: string, content: string): Promise<string> => {
   const prompt = `You are an expert data visualizer. Create a Mermaid.js mindmap diagram representing the following notes.
 Respond ONLY with the raw valid mermaid code. Do NOT wrap it in markdown \`\`\`mermaid or any other formatting. 
+Keep the mindmap CONCISE. Limit it to a maximum of 15-20 total nodes to prevent visual clutter and over-density. Do not go too deep.
 Use the 'mindmap' diagram type. Ensure syntax is perfectly valid. Example syntax:
 mindmap
   root((Topic))
@@ -88,7 +89,8 @@ export const generateSlideDeck = async (title: string, content: string): Promise
   const prompt = `You are an expert presenter. Create a Markdown Slide Deck based on the following notes.
 Separate each slide with exactly three dashes: "---".
 For each slide, include a concise Title (##), Bullet Points, and brief speaker notes if necessary.
-You MUST include at least one \`\`\`mermaid diagram (e.g., pie chart, bar chart via xyChart, flowchart) in one of the slides to visually represent data or processes.
+You MUST include at least one \`\`\`mermaid diagram in one of the slides to visually represent data or processes. 
+IMPORTANT: Use ONLY simple, standard Mermaid diagrams (e.g., simple pie chart, basic flowchart TD/LR). Avoid complex or experimental charts (like xyChart) to prevent syntax rendering errors.
 Make it at least 5 slides long.
 
 Title: ${title}
@@ -101,7 +103,7 @@ export const generateReport = async (title: string, content: string): Promise<st
   const prompt = `You are a professional analyst. Write a formal, analytical report based on the following notes.
 The report should include an Introduction, Methodology/Context, Detailed Analysis, and Conclusion.
 Use professional formatting with headings, bullet points, and paragraphs in Markdown.
-CRITICAL: You MUST include at least one \`\`\`mermaid diagram (e.g., Gantt chart, timeline, xyChart, or flowchart) to visualize the analysis.
+CRITICAL: You MUST include at least one \`\`\`mermaid diagram (e.g., simple Gantt chart, timeline, or flowchart) to visualize the analysis. Avoid experimental charts like xyChart.
 
 Title: ${title}
 Content: ${content || 'No content provided — base it on the title.'}`;

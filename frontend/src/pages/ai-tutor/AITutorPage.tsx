@@ -6,8 +6,6 @@ import { SuggestedPrompts } from './SuggestedPrompts';
 import { MessageInput } from './MessageInput';
 import toast from 'react-hot-toast';
 import * as pdfjsLib from 'pdfjs-dist';
-// Using mammoth from window or basic import. Mammoth doesn't have types and can be tricky in Vite if not configured.
-// @ts-ignore
 import mammoth from 'mammoth';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
@@ -77,6 +75,7 @@ async function callGroqStream(
   const decoder = new TextDecoder('utf-8');
   let fullContent = '';
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;

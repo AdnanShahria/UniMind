@@ -37,7 +37,9 @@ export const LeaderboardPage = () => {
             let badgesArr: any[] = [];
             try {
               badgesArr = u.badges ? JSON.parse(u.badges) : [];
-            } catch (e) { }
+            } catch (e) {
+              // ignore error
+            }
 
             return {
               id: u.id,

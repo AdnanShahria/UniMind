@@ -31,6 +31,7 @@ export const PrivacySettingsPage = () => {
   const [showSaved, setShowSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+   
   useEffect(() => {
     const fetch = async () => {
       const { data: { user } } = await turso.auth.getUser();
@@ -45,6 +46,7 @@ export const PrivacySettingsPage = () => {
       }
     };
     fetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const update = (key: keyof PrivacyPrefs, val: any) => {

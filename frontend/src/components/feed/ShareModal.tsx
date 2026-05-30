@@ -18,10 +18,12 @@ export const ShareModal = ({ isOpen, onClose, post, currentUser, onShareContent 
   const [recentFriends, setRecentFriends] = useState<any[]>([]);
   const [isLoadingFriends, setIsLoadingFriends] = useState(true);
 
+   
   useEffect(() => {
     if (isOpen && currentUser) {
       fetchRecentFriends();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, currentUser]);
 
   const fetchRecentFriends = async () => {

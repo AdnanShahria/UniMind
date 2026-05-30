@@ -5,39 +5,38 @@ import { fadeIn } from './data';
 
 interface FolderGridProps {
   folders: FolderType[];
-  selectedFolder: string | null;
-  toggleFolder: (name: string) => void;
-  clearFolder: () => void;
+  onFolderClick: (folderId: string) => void;
 }
 
-export const FolderGrid = ({ folders, selectedFolder, toggleFolder, clearFolder }: FolderGridProps) => {
+export const FolderGrid = ({ folders, onFolderClick }: FolderGridProps) => {
   return (
     <motion.div variants={fadeIn} className="mb-8">
       <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] font-poppins mb-3 px-1 flex justify-between items-center">
-        <span>Folders {selectedFolder && <span className="text-primary normal-case font-normal ml-2 tracking-normal">- Filtered by: {selectedFolder}</span>}</span>
-        {selectedFolder && (
-          <button onClick={clearFolder} className="text-[10px] text-slate-400 hover:text-white normal-case tracking-normal">
-            Clear Filter
-          </button>
-        )}
+        <span>Folders</span>
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {folders.map((folder, i) => (
-          <motion.div
-            key={i}
-            onClick={() => toggleFolder(folder.name)}
+          <motion.button
+            key={folder.name}
+            onClick={() => onFolderClick(folder.id)}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 + i * 0.08 }}
-            whileHover={{ y: -2 }}
-            className={`p-4 rounded-2xl bg-gradient-to-br ${folder.color} border cursor-pointer group transition-all
-              ${selectedFolder === folder.name ? 'ring-2 ring-primary ring-offset-2 ring-offset-[#0B0F19] border-primary/50' : folder.borderColor}
+            className={`
+              relative overflow-hidden text-left
+              px-5 py-4 rounded-2xl border transition-all duration-300
+              group flex items-start gap-4 hover:-translate-y-1
+              bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.08]
             `}
           >
-            <FolderOpen className={`w-8 h-8 transition-colors mb-3 ${selectedFolder === folder.name ? 'text-white' : 'text-white/30 group-hover:text-white/50'}`} />
-            <p className="text-sm font-semibold text-white font-poppins">{folder.name}</p>
-            <p className="text-[11px] text-slate-400 font-poppins mt-0.5">{folder.count} notes</p>
-          </motion.div>
+            <div className={`p-2.5 rounded-xl bg-gradient-to-br ${folder.color} border ${folder.borderColor} mb-3 inline-block`}>
+              <FolderOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white font-poppins">{folder.name}</p>
+              <p className="text-[11px] text-slate-400 font-poppins mt-0.5">{folder.count} items</p>
+            </div>
+          </motion.button>
         ))}
       </div>
     </motion.div>

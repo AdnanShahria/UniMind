@@ -1,7 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const API_URL = 'http://localhost:8787';
 let cachedMetadata: any = null;
-let mockFlashcards = new Map<string, any>();
-
 const getStoredUser = () => {
   const token = localStorage.getItem('unimind_token');
   if (!token) return null;
@@ -137,6 +136,15 @@ export const turso: any = {
       return { data: { user }, error: null };
     }
   },
+  removeChannel: (_channel: any) => {},
+  channel: (_name: string) => {
+    const mockChannel = {
+      on: () => mockChannel,
+      subscribe: () => mockChannel,
+      unsubscribe: () => {}
+    };
+    return mockChannel;
+  },
   from: (table: string) => {
     const builder: any = {
       _action: '',
@@ -181,7 +189,7 @@ export const turso: any = {
       },
       then: async (onfulfilled: any) => {
         try {
-          let result: any = { data: null, error: null, count: 0 };
+          const result: any = { data: null, error: null, count: 0 };
           const token = localStorage.getItem('unimind_token');
           const headers: any = {
             'Content-Type': 'application/json'
@@ -306,25 +314,41 @@ export const turso: any = {
             if (table === 'users' && builder._single) {
               const u = getStoredUser();
               result.data = u;
-            } else if (table === 'flashcards') {
-              if (builder._action === 'select') {
-                const all = Array.from(mockFlashcards.values());
-                const noteId = builder._eq?.value;
-                result.data = noteId ? all.filter(f => f.note_id === noteId) : all;
-              } else if (builder._action === 'insert') {
-                const inserts = Array.isArray(builder._data) ? builder._data : [builder._data];
-                inserts.forEach((fc: any) => {
-                  const id = crypto.randomUUID();
-                  mockFlashcards.set(id, { id, ...fc, created_at: new Date().toISOString() });
-                });
-                result.data = inserts;
-              } else if (builder._action === 'update') {
-                const id = builder._eq?.value;
-                if (id && mockFlashcards.has(id)) {
-                   mockFlashcards.set(id, { ...mockFlashcards.get(id), ...builder._data });
-                }
-                result.data = [];
-              }
+          } else if (table === 'flashcards') {
+            if (builder._action === 'select') {
+              const noteId = builder._eq?.value;
+              const url = noteId ? `${API_URL}/api/flashcards?note_id=${noteId}` : `${API_URL}/api/flashcards`;
+              const res = await fetch(url, { headers });
+              const json = await res.json();
+              result.data = json.data || [];
+            } else if (builder._action === 'insert') {
+              const payload = Array.isArray(builder._data) ? builder._data : [builder._data];
+              const res = await fetch(`${API_URL}/api/flashcards`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              result.data = json.data;
+            } else if (builder._action === 'update') {
+              const id = builder._eq?.value;
+              const payload = { id, ...builder._data };
+              const res = await fetch(`${API_URL}/api/flashcards`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              result.data = [json.data]; // Expect array return pattern for .then data mapping
+            } else if (builder._action === 'delete') {
+              const id = builder._eq?.value;
+              const res = await fetch(`${API_URL}/api/flashcards?id=${id}`, {
+                method: 'DELETE',
+                headers
+              });
+              const json = await res.json();
+              result.error = json.error ? { message: json.error } : null;
+            }
             } else {
               result.data = [];
             }
