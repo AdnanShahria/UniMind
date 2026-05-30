@@ -11,5 +11,17 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/auth': {
+        target: 'http://127.0.0.1:8788',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://127.0.0.1:8788',
+        changeOrigin: true,
+      }
+    }
   }
 })

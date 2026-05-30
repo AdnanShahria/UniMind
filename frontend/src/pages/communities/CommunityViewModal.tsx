@@ -23,7 +23,7 @@ export const CommunityViewModal = ({ isOpen, onClose, community }: CommunityView
     if (!community?.id) return;
     setLoadingPosts(true);
     try {
-      const res = await fetch(`http://localhost:8787/api/communities/posts?communityId=${community.id}`);
+      const res = await fetch(`/api/communities/posts?communityId=${community.id}`);
       const json = await res.json();
       if (json.success) {
         setPosts(json.data || []);
@@ -39,7 +39,7 @@ export const CommunityViewModal = ({ isOpen, onClose, community }: CommunityView
     if (!community?.id) return;
     setLoadingMembers(true);
     try {
-      const res = await fetch(`http://localhost:8787/api/communities/members?communityId=${community.id}`);
+      const res = await fetch(`/api/communities/members?communityId=${community.id}`);
       const json = await res.json();
       if (json.success) {
         setMembers(json.data || []);

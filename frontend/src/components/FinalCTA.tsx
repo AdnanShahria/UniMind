@@ -34,10 +34,16 @@ export const FinalCTA = ({ onOpenAuth }: { onOpenAuth: (tab: 'login' | 'register
               >
                 Join Beta
               </button>
-              <button className="px-5 py-2.5 glass-panel text-white font-bold rounded-lg text-xs md:text-sm hover:bg-white/10 transition-all border border-white/20">
+              <button 
+                onClick={() => onOpenAuth('register')}
+                className="px-5 py-2.5 glass-panel text-white font-bold rounded-lg text-xs md:text-sm hover:bg-white/10 transition-all border border-white/20"
+              >
                 Contact Team
               </button>
-              <button className="px-5 py-2.5 glass-panel text-primary-glow font-bold rounded-lg text-xs md:text-sm hover:bg-primary/10 transition-all border border-primary/30">
+              <button 
+                onClick={() => onOpenAuth('register')}
+                className="px-5 py-2.5 glass-panel text-primary-glow font-bold rounded-lg text-xs md:text-sm hover:bg-primary/10 transition-all border border-primary/30"
+              >
                 Become Campus Ambassador
               </button>
             </div>

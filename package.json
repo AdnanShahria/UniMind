@@ -7,7 +7,7 @@
     "api"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=frontend",
+    "dev": "wrangler pages dev -- npm run dev --workspace=frontend",
     "dev:all": "concurrently -n \"frontend,backend,api\" -c \"blue,green,purple\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=api\"",
     "dev:full": "concurrently -n \"frontend,backend,api\" -c \"blue,green,purple\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=api\"",
     "build": "npm run build --workspace=frontend",

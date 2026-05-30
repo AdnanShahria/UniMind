@@ -42,7 +42,7 @@ export const LandingPage = () => {
         <ResearchSection />
         <MobilePreview />
         <Testimonials />
-        <FutureVision />
+        <FutureVision onOpenAuth={openAuth} />
         <FinalCTA onOpenAuth={openAuth} />
       </main>
 

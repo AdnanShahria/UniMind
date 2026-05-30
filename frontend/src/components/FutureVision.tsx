@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-export const FutureVision = () => {
+export const FutureVision = ({ onOpenAuth }: { onOpenAuth: (tab: 'login' | 'register') => void }) => {
   return (
     <section className="py-32 relative z-10 overflow-hidden text-center">
       {/* Background glow */}
@@ -33,10 +33,16 @@ export const FutureVision = () => {
           transition={{ delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <button className="px-10 py-5 bg-white text-slate-900 font-bold rounded-xl text-lg hover:bg-slate-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+          <button 
+            onClick={() => onOpenAuth('register')}
+            className="px-10 py-5 bg-white text-slate-900 font-bold rounded-xl text-lg hover:bg-slate-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+          >
             Join the Next Generation
           </button>
-          <button className="px-10 py-5 glass-panel text-white font-bold rounded-xl text-lg hover:bg-white/10 transition-colors border border-white/20">
+          <button 
+            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-10 py-5 glass-panel text-white font-bold rounded-xl text-lg hover:bg-white/10 transition-colors border border-white/20"
+          >
             Explore Features
           </button>
         </motion.div>

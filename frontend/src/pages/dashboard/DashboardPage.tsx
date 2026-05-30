@@ -33,7 +33,7 @@ export const DashboardPage = () => {
       // 1. Fetch recent activity (from posts)
       let posts = null;
       try {
-        const response = await fetch('http://localhost:8787/api/feed');
+        const response = await fetch('/api/feed');
         const json = await response.json();
         if (json.success && json.data) {
           posts = json.data;

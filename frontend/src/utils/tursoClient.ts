@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-const API_URL = 'http://localhost:8787';
+const API_URL = '';
 let cachedMetadata: any = null;
 const getStoredUser = () => {
   const token = localStorage.getItem('unimind_token');

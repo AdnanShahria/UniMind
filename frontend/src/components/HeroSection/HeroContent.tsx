@@ -28,7 +28,10 @@ export const HeroContent = ({ onOpenAuth }: { onOpenAuth: (tab: 'login' | 'regis
           Start building free
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
-        <button className="group px-6 py-3.5 bg-white/5 text-white font-medium rounded-lg border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+        <button 
+          onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+          className="group px-6 py-3.5 bg-white/5 text-white font-medium rounded-lg border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+        >
           Explore features
           <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
         </button>
