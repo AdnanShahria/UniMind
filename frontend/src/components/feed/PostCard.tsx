@@ -3,6 +3,7 @@ import { Heart, MessageSquare, Share2, BookmarkPlus, MoreHorizontal, Send, Camer
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { turso } from '../../utils/tursoClient';
+import { uploadImageToImgbb, fileToBase64 } from '../../utils/imgbbUpload';
 import { ShareModal } from './ShareModal';
 import toast from 'react-hot-toast';
 
@@ -92,22 +93,15 @@ export const PostCard = ({ post, index, currentUser }: PostCardProps) => {
 
     if (commentPhoto) {
       try {
-        const fileExt = commentPhoto.name.split('.').pop();
-        const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
-        const filePath = `comments/${fileName}`;
+        const imgName = `comment-${currentUser.id}-${Date.now()}`;
+        const result = await uploadImageToImgbb(commentPhoto, imgName);
 
-        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, commentPhoto);
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
-          imageUrl = publicUrl;
+        if (result.success && result.url) {
+          imageUrl = result.url;
         } else {
           // Fallback to base64
-          imageUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(commentPhoto);
-          });
+          console.warn('IMGBB upload failed for comment photo, using base64:', result.error);
+          imageUrl = await fileToBase64(commentPhoto);
         }
       } catch (err) {
         console.error("Error uploading comment photo:", err);

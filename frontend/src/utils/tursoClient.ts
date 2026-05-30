@@ -371,15 +371,7 @@ export const turso: any = {
     };
     return builder;
   },
-  storage: {
-    from: (bucket: string) => ({
-      upload: async (path: string, _file: any) => {
-        return { data: { path }, error: null };
-      },
-      getPublicUrl: (path: string) => {
-        return { data: { publicUrl: `https://placeholder.url/${bucket}/${path}` } };
-      }
-    })
-  }
+  // Storage has been removed — all image uploads now use IMGBB (see utils/imgbbUpload.ts)
+  // Documents/PDFs are stored as base64 directly in Turso.
 };
 

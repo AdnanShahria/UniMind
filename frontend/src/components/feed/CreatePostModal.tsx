@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Image as ImageIcon, FileText, Sparkles, Hash } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { turso } from '../../utils/tursoClient';
+import { uploadImageToImgbb, fileToBase64 } from '../../utils/imgbbUpload';
 import toast from 'react-hot-toast';
 
 interface CreatePostModalProps {
@@ -83,21 +84,13 @@ export const CreatePostModal = ({
     } else if (selectedPhoto) {
       postType = 'image';
       try {
-        const fileExt = selectedPhoto.name.split('.').pop();
-        const fileName = `${currentUser.id}-${Date.now()}-${Math.random()}.${fileExt}`;
-        const filePath = `posts/photos/${fileName}`;
-
-        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, selectedPhoto);
-        if (!uploadError) {
-          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
-          mediaUrls.push(publicUrl);
+        const imgName = `post-${currentUser.id}-${Date.now()}`;
+        const result = await uploadImageToImgbb(selectedPhoto, imgName);
+        if (result.success && result.url) {
+          mediaUrls.push(result.url);
         } else {
-          console.warn("Storage service upload failed for photo, trying base64 fallback:", uploadError);
-          const base64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(selectedPhoto);
-          });
+          console.warn("IMGBB upload failed, using base64 fallback:", result.error);
+          const base64 = await fileToBase64(selectedPhoto);
           mediaUrls.push(base64);
         }
       } catch (err) {
@@ -108,25 +101,11 @@ export const CreatePostModal = ({
     if (selectedNote && !isAnnouncement) {
       postType = 'document';
       try {
-        const fileExt = selectedNote.name.split('.').pop();
-        const fileName = `${currentUser.id}-${Date.now()}-${Math.random()}.${fileExt}`;
-        const filePath = `posts/notes/${fileName}`;
-
-        const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, selectedNote);
-        if (!uploadError) {
-          const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
-          mediaUrls.push(publicUrl);
-        } else {
-          console.warn("Storage service upload failed for document, trying base64 fallback:", uploadError);
-          const base64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(selectedNote);
-          });
-          mediaUrls.push(base64);
-        }
+        // Documents (PDFs, docs) are stored as base64 in Turso
+        const base64 = await fileToBase64(selectedNote);
+        mediaUrls.push(base64);
       } catch (err) {
-        console.error("Error uploading note document:", err);
+        console.error("Error processing note document:", err);
       }
     }
 

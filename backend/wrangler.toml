@@ -4,4 +4,8 @@ compatibility_date = "2024-01-01"
 
 [vars]
 # Non-sensitive configuration variables.
-# Wrangler automatically loads database and secret credentials from .dev.vars in local development.
+TURSO_DATABASE_URL = "libsql://unimind-adnanshahria2006.aws-ap-south-1.turso.io"
+R2_ACCOUNT_ID = "57831cda08ced02f17c00daa4e28809a"
+R2_BUCKET_NAME = "unimind"
+R2_ENDPOINT = "https://57831cda08ced02f17c00daa4e28809a.r2.cloudflarestorage.com"
+

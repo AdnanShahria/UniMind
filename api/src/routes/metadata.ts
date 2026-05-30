@@ -4,10 +4,18 @@ export async function handleMetadataRoutes(url: URL, request: Request, db: any):
   if (url.pathname === "/api/metadata/approved" && request.method === "GET") {
     try {
       let rows: any[] = [];
+      let dbSuccess = false;
       if (db) {
-        const res = await db.execute("SELECT * FROM metadata_requests WHERE status IN ('approved', 'pending')");
-        rows = res.rows;
-      } else {
+        try {
+          const res = await db.execute("SELECT * FROM metadata_requests WHERE status IN ('approved', 'pending')");
+          rows = res.rows;
+          dbSuccess = true;
+        } catch (e) {
+          console.warn("Failed to query metadata_requests from Turso, falling back to mock data:", e);
+        }
+      }
+      
+      if (!dbSuccess) {
         rows = Array.from(mockMetadataRequests.values()).filter(r => r.status === 'approved' || r.status === 'pending');
       }
 

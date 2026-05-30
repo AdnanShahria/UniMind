@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Save, Plus, X, User as UserIcon, Link, Twitter, Github, Linkedin, BookOpen, Camera } from 'lucide-react';
 import { turso } from '../../utils/tursoClient';
+import { uploadImageToImgbb, fileToBase64 } from '../../utils/imgbbUpload';
 import { SettingsPageLayout } from '../../components/settings/SettingsPageLayout';
 
 const TagInput = ({
@@ -83,27 +84,22 @@ export const ProfileSettingsPage = () => {
     if (!file || !currentUser) return;
     
     setIsSaving(true);
-    setStatus({ type: 'success', msg: 'Uploading image...' });
+    setStatus({ type: 'success', msg: 'Uploading image to IMGBB...' });
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
-      const filePath = `public/${fileName}`;
+      const imgName = `avatar-${currentUser.id}-${Date.now()}`;
+      const result = await uploadImageToImgbb(file, imgName);
 
-      const { error: uploadError } = await turso.storage.from('avatars').upload(filePath, file);
-
-      if (!uploadError) {
-        const { data: { publicUrl } } = turso.storage.from('avatars').getPublicUrl(filePath);
-        setAvatarUrl(publicUrl);
-        setStatus(null);
+      if (result.success && result.url) {
+        setAvatarUrl(result.url);
+        setStatus({ type: 'success', msg: 'Avatar uploaded successfully!' });
+        setTimeout(() => setStatus(null), 3000);
       } else {
-        // Fallback to base64 if bucket doesn't exist
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setAvatarUrl(reader.result as string);
-          setStatus(null);
-        };
-        reader.readAsDataURL(file);
+        // Fallback to base64 if IMGBB fails
+        console.warn('IMGBB upload failed, using base64 fallback:', result.error);
+        const base64 = await fileToBase64(file);
+        setAvatarUrl(base64);
+        setStatus(null);
       }
     } catch (err) {
       console.error(err);
