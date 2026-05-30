@@ -31,6 +31,7 @@ const quickSearchSuggestions = [
 
 import { useTopBarContext } from '../../contexts/TopBarContext';
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 export const TopBar = () => {
   const [searchFocused, setSearchFocused] = useState(false);
@@ -40,6 +41,21 @@ export const TopBar = () => {
   const [userInitial, setUserInitial] = useState('S');
   const { theme, toggleTheme } = useTheme();
   const { leftContent } = useTopBarContext();
+  const location = useLocation();
+
+  const getPageName = () => {
+    const path = location.pathname;
+    if (path.startsWith('/app/feed')) return 'UniFeed';
+    if (path.startsWith('/app/notes')) return 'UniNote';
+    if (path.startsWith('/app/ai')) return 'UniTutor';
+    if (path.startsWith('/app/messages')) return 'UniChat';
+    if (path.startsWith('/app/leaderboard')) return 'UniBoard';
+    if (path.startsWith('/app/communities')) return 'UniGroup';
+    if (path.startsWith('/app/planner')) return 'UniPlan';
+    if (path.startsWith('/app/research')) return 'UniLab';
+    if (path === '/app') return 'UniHome';
+    return 'UniMind';
+  };
 
   useEffect(() => {
     let channel: any;
@@ -167,10 +183,10 @@ export const TopBar = () => {
           leftContent
         ) : (
           <>
-            {/* Mobile: Logo + UniMind brand */}
+            {/* Mobile: Logo + Page Name */}
             <div className="flex sm:hidden items-center gap-2">
               <img src="/logo.png" className="w-7 h-7 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" alt="UniMind" />
-              <span className="text-[15px] font-bold text-white tracking-wide font-poppins">UniMind</span>
+              <span className="text-[15px] font-bold text-white tracking-wide font-poppins">{getPageName()}</span>
             </div>
             {/* Desktop: Search bar */}
             <div className="hidden sm:block">

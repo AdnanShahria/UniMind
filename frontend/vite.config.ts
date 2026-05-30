@@ -7,5 +7,9 @@ dotenv.config({ path: '../.dev.vars' })
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()]
+  plugins: [react()],
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+  }
 })
