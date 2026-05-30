@@ -9,8 +9,8 @@ export const AuthPageRoute = () => {
   return (
     <AuthPage
       initialTab={tab}
-      onBackToHome={() => navigate('/')}
-      onEnterWorkspace={() => navigate('/app')}
+      onBackToHome={() => { window.location.href = '/'; }}
+      onEnterWorkspace={() => { window.location.href = '/app.html'; }}
     />
   );
 };

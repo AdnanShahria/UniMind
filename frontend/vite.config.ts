@@ -11,6 +11,13 @@ export default defineConfig({
   build: {
     outDir: './dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        auth: './auth.html',
+        app: './app.html'
+      }
+    }
   },
   server: {
     proxy: {

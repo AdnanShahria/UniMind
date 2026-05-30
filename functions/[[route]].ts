@@ -12,7 +12,7 @@ export const onRequest = async (context: PagesContext) => {
 
   if (
     url.pathname.startsWith('/api') ||
-    url.pathname.startsWith('/auth') ||
+    url.pathname.startsWith('/auth/') ||
     url.pathname.startsWith('/compress') ||
     url.pathname === '/status'
   ) {

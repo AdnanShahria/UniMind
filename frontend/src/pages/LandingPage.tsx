@@ -18,7 +18,7 @@ export const LandingPage = () => {
   const navigate = useNavigate();
 
   const openAuth = (tab: 'login' | 'register') => {
-    navigate(`/auth?tab=${tab}`);
+    window.location.href = `/auth.html?tab=${tab}`;
   };
 
   return (

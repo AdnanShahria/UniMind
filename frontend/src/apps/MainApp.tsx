@@ -1,48 +1,46 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // Pages
-import { LandingPage } from './pages/LandingPage';
-import { AuthPageRoute } from './pages/AuthPageRoute';
-import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { FeedPage } from './pages/FeedPage';
-import { NotesPage } from './pages/notes/NotesPage';
-import { AITutorPage } from './pages/ai-tutor/AITutorPage';
-import { CommunitiesPage } from './pages/communities/CommunitiesPage';
-import { CommunityDetailPage } from './pages/communities/CommunityDetailPage';
-import { MessagesPage } from './pages/messages/MessagesPage';
-import { PlannerPage } from './pages/planner/PlannerPage';
-import { ResearchPage } from './pages/research/ResearchPage';
-import { ResearchDetailPage } from './pages/research/ResearchDetailPage';
-import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { ProfileSettingsPage } from './pages/settings/ProfileSettingsPage';
-import { EmailSettingsPage } from './pages/settings/EmailSettingsPage';
-import { PasswordSettingsPage } from './pages/settings/PasswordSettingsPage';
-import { ApiKeysPage } from './pages/settings/ApiKeysPage';
-import { AppearanceSettingsPage } from './pages/settings/AppearanceSettingsPage';
-import { NotificationsSettingsPage } from './pages/settings/NotificationsSettingsPage';
-import { LanguageSettingsPage } from './pages/settings/LanguageSettingsPage';
-import { AccessibilitySettingsPage } from './pages/settings/AccessibilitySettingsPage';
-import { DataManagementPage } from './pages/settings/DataManagementPage';
-import { StorageUsagePage } from './pages/settings/StorageUsagePage';
-import { PrivacySettingsPage } from './pages/settings/PrivacySettingsPage';
-import { PreferencesHubPage } from './pages/settings/PreferencesHubPage';
-import { DataStorageHubPage } from './pages/settings/DataStorageHubPage';
-import { ProfilePage } from './pages/profile/ProfilePage';
-import { MyPostsPage } from './pages/settings/MyPostsPage';
-import { MyLikesPage } from './pages/settings/MyLikesPage';
-import { MyCommentsPage } from './pages/settings/MyCommentsPage';
-import { MySharesPage } from './pages/settings/MySharesPage';
-import { AdminPanel } from './pages/admin/AdminPanel';
+import { DashboardPage } from '../pages/dashboard/DashboardPage';
+import { FeedPage } from '../pages/FeedPage';
+import { NotesPage } from '../pages/notes/NotesPage';
+import { AITutorPage } from '../pages/ai-tutor/AITutorPage';
+import { CommunitiesPage } from '../pages/communities/CommunitiesPage';
+import { CommunityDetailPage } from '../pages/communities/CommunityDetailPage';
+import { MessagesPage } from '../pages/messages/MessagesPage';
+import { PlannerPage } from '../pages/planner/PlannerPage';
+import { ResearchPage } from '../pages/research/ResearchPage';
+import { ResearchDetailPage } from '../pages/research/ResearchDetailPage';
+import { LeaderboardPage } from '../pages/leaderboard/LeaderboardPage';
+import { SettingsPage } from '../pages/SettingsPage';
+import { ProfileSettingsPage } from '../pages/settings/ProfileSettingsPage';
+import { EmailSettingsPage } from '../pages/settings/EmailSettingsPage';
+import { PasswordSettingsPage } from '../pages/settings/PasswordSettingsPage';
+import { ApiKeysPage } from '../pages/settings/ApiKeysPage';
+import { AppearanceSettingsPage } from '../pages/settings/AppearanceSettingsPage';
+import { NotificationsSettingsPage } from '../pages/settings/NotificationsSettingsPage';
+import { LanguageSettingsPage } from '../pages/settings/LanguageSettingsPage';
+import { AccessibilitySettingsPage } from '../pages/settings/AccessibilitySettingsPage';
+import { DataManagementPage } from '../pages/settings/DataManagementPage';
+import { StorageUsagePage } from '../pages/settings/StorageUsagePage';
+import { PrivacySettingsPage } from '../pages/settings/PrivacySettingsPage';
+import { PreferencesHubPage } from '../pages/settings/PreferencesHubPage';
+import { DataStorageHubPage } from '../pages/settings/DataStorageHubPage';
+import { ProfilePage } from '../pages/profile/ProfilePage';
+import { MyPostsPage } from '../pages/settings/MyPostsPage';
+import { MyLikesPage } from '../pages/settings/MyLikesPage';
+import { MyCommentsPage } from '../pages/settings/MyCommentsPage';
+import { MySharesPage } from '../pages/settings/MySharesPage';
+import { AdminPanel } from '../pages/admin/AdminPanel';
 
 // Layout
-import { AppLayout } from './components/app/AppLayout';
+import { AppLayout } from '../components/app/AppLayout';
 
 // Context
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
-function App() {
+function MainApp() {
   return (
     <ThemeProvider>
       <Toaster position="bottom-right" toastOptions={{
@@ -54,11 +52,6 @@ function App() {
       }} />
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPageRoute />} />
-
-          {/* Authenticated App Routes (wrapped in AppLayout with sidebar + topbar) */}
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="feed" element={<FeedPage />} />
@@ -100,4 +93,4 @@ function App() {
   );
 }
 
-export default App;
+export default MainApp;
